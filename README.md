@@ -2,35 +2,66 @@
 
 Kinect4FOG is research software for detecting freezing of gait (FOG) and falls in people with Parkinson's disease using Microsoft Kinect v2, with automated laser-based visual cueing.
 
-This repository is a cleaned, documented archival release of the original Kinect4FOG research implementation. The clean-up is intended to improve readability, maintainability, attribution and reproducibility while preserving the behaviour and methodological thresholds of the published research.
+This repository contains a cleaned and documented archival release of the original research implementation. The refactoring improves source organisation, naming, documentation and repository hygiene while preserving the methodology and research-critical values used by the original system.
 
 ## Associated publication
 
-Amini, A., Banitsas, K. and Young, W. R. (2019). **Kinect4FOG: monitoring and improving mobility in people with Parkinson's using a novel system incorporating the Microsoft Kinect v2.** *Disability and Rehabilitation: Assistive Technology*, 14(6), 566–573.
+**Kinect4FOG: monitoring and improving mobility in people with Parkinson's using a novel system incorporating the Microsoft Kinect v2**
 
-**Published paper:** https://doi.org/10.1080/17483107.2018.1467975
+Published paper: https://doi.org/10.1080/17483107.2018.1467975
 
-## Research software
+If you use this software in academic work, please cite the associated publication. GitHub citation metadata is provided in `CITATION.cff`.
 
-The system combines:
+## What the system does
+
+Kinect4FOG combines:
 
 - Microsoft Kinect v2 RGB-D and body-joint tracking.
 - Knee-angle and gait-cycle analysis for freezing-of-gait detection.
 - Fall monitoring.
 - Automated laser visual cue positioning.
-- Serial communication with the associated Arduino/servo controller.
+- Serial communication with an Arduino/servo laser controller.
 - UDP-based remote monitoring support.
 
-The research-critical thresholds and calculations from the original implementation are preserved unless a separately documented correction is required.
+The original research values, including the 170-degree knee-angle threshold and 200 ms minimum stride timing used by the FOG implementation, are retained.
 
-## Author and copyright
+## Repository structure
 
-Research implementation and modifications: **Amin Amini**.
+- `Detection/` — gait/FOG and fall-related detection UI and logic.
+- `Kinect/` — Kinect v2 acquisition and body-joint processing.
+- `Hardware/` — serial communication and serial-port configuration.
+- `Networking/` — UDP broadcast configuration.
+- `UI/` — supporting WPF windows.
+- `Images/` — runtime resources used by the WPF application.
+- `BUILDING.md` — build prerequisites and instructions.
+- `CHANGELOG.md` — release clean-up history.
 
-Copyright (c) Amin Amini. All rights reserved.
+## Release clean-up
 
-Some source files are derived from or incorporate Microsoft Kinect SDK sample code. Original third-party notices are retained where applicable; the authorship statement above applies to the Kinect4FOG research implementation and modifications.
+Compared with the historical development repository, this release:
 
-## Release status
+- excludes generated `bin/`, `obj/`, package binaries and Visual Studio metadata;
+- corrects filenames, class names, method names and spelling;
+- replaces selected opaque identifiers with descriptive names;
+- removes obsolete commented-out executable code;
+- retains Microsoft or other third-party notices where applicable;
+- adds consistent research attribution and the publication DOI;
+- preserves the original research calculations unless a correction is explicitly documented.
 
-This repository is being prepared as the maintained release version of the historical Kinect4FOG research software. See the associated publication above for the scientific methodology.
+## Building
+
+See [BUILDING.md](BUILDING.md).
+
+This is Windows research software requiring Microsoft Kinect v2 support and the Kinect for Windows SDK v2. Hardware-dependent features require the associated sensor and Arduino/servo setup for full runtime validation.
+
+## Copyright and provenance
+
+Research implementation and modifications:
+
+**Copyright (c) Amin Amini. All rights reserved.**
+
+Associated publication:
+
+https://doi.org/10.1080/17483107.2018.1467975
+
+Some source files originate from or incorporate Microsoft Kinect SDK sample code. Original third-party copyright notices are retained where applicable. See [COPYRIGHT.md](COPYRIGHT.md) for details.
