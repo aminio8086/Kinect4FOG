@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Microsoft.Samples.Kinect.BodyBasics"
         mc:Ignorable="d"
-        Title="UdpBroadcastSettingsWindow" Height="202.85" Width="232">
+        Title="UDP Broadcast Settings" Closing="UdpBroadcastSettingsWindow_Closing" Height="202.85" Width="232">
     <Grid Background="#FFF1F1F1">
         <Border BorderBrush="#FF939393" BorderThickness="1" HorizontalAlignment="Left" Height="53" Margin="125,63,0,0" VerticalAlignment="Top" Width="83"/>
         <Button x:Name="B_save" Content="Save" HorizontalAlignment="Left" Margin="129,80,0,0" VerticalAlignment="Top" Width="75" Click="B_save_Click"/>

@@ -22,6 +22,12 @@ namespace Parkinson.Detection
             InitializeComponent();
         }
 
+        private void UdpBroadcastSettingsWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            Hide();
+        }
+
         private void B_save_Click(object sender, RoutedEventArgs e)
         {
             IPAddress address;

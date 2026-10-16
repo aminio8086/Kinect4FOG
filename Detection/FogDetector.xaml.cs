@@ -148,7 +148,7 @@ namespace Parkinson.Detection
         {
             if (serialController == null)
             {
-                throw new ArgumentNullException(nameof(serialController));
+                throw new ArgumentNullException("serialController");
             }
 
             _serialController = serialController;

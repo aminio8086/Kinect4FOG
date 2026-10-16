@@ -24,6 +24,12 @@ namespace Parkinson.Detection
             InitializeComponent();
         }
 
+        private void SerialPortSettingsWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            Hide();
+        }
+
         private void B_scan_Click(object sender, RoutedEventArgs e)
         {
             string[] ports = System.IO.Ports.SerialPort.GetPortNames();
