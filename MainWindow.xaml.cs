@@ -28,7 +28,7 @@ namespace Parkinson.Detection
         public bool fogDetectorBool = false;
         public bool broadcaster = false;
 
-       private KinectReader _kinectReader;
+        private KinectReader _kinectReader;
 
         public FogDetector fogDetector;
         public UdpBroadcastSettingsWindow udpBroadcast;

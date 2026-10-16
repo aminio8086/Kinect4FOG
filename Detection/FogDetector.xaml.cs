@@ -364,8 +364,7 @@ namespace Parkinson.Detection
                     + "*" + " "
                     + (Math.Abs(90 + _resultShoulderTurnRight)).ToString() + " "
                     + (Math.Abs(90 - _resultShoulderTurnLeft)).ToString() + " "
-
-           );
+                );
                     _textRowNumber++;
                 }
 
