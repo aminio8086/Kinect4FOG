@@ -348,147 +348,121 @@ private void SendImage()
 
         private void Reader_FrameArrived(object sender, BodyFrameArrivedEventArgs e)
         {
-
             bool dataReceived = false;
 
             using (BodyFrame bodyFrame = e.FrameReference.AcquireFrame())
             {
-
-                    if (bodyFrame != null)
-                    {
-                        if (this.bodies == null)
-                        {
-                            this.bodies = new Body[bodyFrame.BodyCount];
-                        }
-
-                        // The first time GetAndRefreshBodyData is called, Kinect will allocate each Body in the array.
-                        // As long as those body objects are not disposed and not set to null in the array,
-                        // those body objects will be re-used.
-                        bodyFrame.GetAndRefreshBodyData(bodies);
-                        dataReceived = true;
-
-                        if (_mainWindow.fogDetector != null && _mainWindow.fogDetector.Visibility == Visibility.Visible)
-                        {
-                            _mainWindow.fogDetector.A_floor = bodyFrame.FloorClipPlane.X;
-                            _mainWindow.fogDetector.B_floor = bodyFrame.FloorClipPlane.Y;
-                            _mainWindow.fogDetector.C_floor = bodyFrame.FloorClipPlane.Z;
-                            _mainWindow.fogDetector.D_floor = bodyFrame.FloorClipPlane.W;
-                        }
-
-                    }
-
-            }
-            if (dataReceived)
-            {
-
+                if (bodyFrame != null)
                 {
-                    using (DrawingContext dc = this.drawingGroup.Open())
+                    if (bodies == null)
                     {
-
-                        BitmapEncoder encoder = new PngBitmapEncoder();
-                        // create frame from the writable bitmap and add to encoder
-                        encoder.Frames.Add(BitmapFrame.Create(this.colorBitmap));
-
-                        ImageBrush ib = new ImageBrush();
-
-                        ib.ImageSource = this.colorBitmap;
-                        // Draw a transparent background to set the render size
-                        dc.DrawRectangle(ib, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                        bodies = new Body[bodyFrame.BodyCount];
                     }
 
-                    // int penIndex = 0;
-                    _mainWindow.canvas.Children.Clear();
+                    // Kinect reuses the Body instances in this array after the initial allocation.
+                    bodyFrame.GetAndRefreshBodyData(bodies);
+                    dataReceived = true;
 
-                    foreach (Body body in this.bodies)
+                    if (_mainWindow.fogDetector != null &&
+                        _mainWindow.fogDetector.Visibility == Visibility.Visible)
                     {
-
-                        // Pen drawPen = this.bodyColors[penIndex++];
-
-                        if (body.IsTracked)
-                        {
-
-                            IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
-
-                            // convert the joint points to depth (display) space
-                            Dictionary<JointType, Point> jointPoints = new Dictionary<JointType, Point>();
-
-                            foreach (JointType jointType in joints.Keys)
-                            {
-                                if (_mainWindow.fogDetector != null && _mainWindow.fogDetector.Visibility == Visibility.Visible)
-                                {
-                                    _mainWindow.fogDetector.leftFootJoint = (joints[JointType.AnkleLeft]);
-                                    _mainWindow.fogDetector.rightFootJoint = (joints[JointType.AnkleRight]);
-
-                                    //For real-time head height plot
-                                    _mainWindow.fogDetector.headJoint = (joints[JointType.Head]);
-
-                                    //For angel detection
-                                    _mainWindow.fogDetector.spineMidJoint = (joints[JointType.SpineMid]);
-                                    _mainWindow.fogDetector.spineBaseJoint = (joints[JointType.SpineBase]);
-                                    _mainWindow.fogDetector.kneeLeftJoint = (joints[JointType.KneeLeft]);
-                                    _mainWindow.fogDetector.hipLeftJoint = (joints[JointType.HipLeft]);
-                                    _mainWindow.fogDetector.ankleLeftJoint = (joints[JointType.AnkleLeft]);
-                                    _mainWindow.fogDetector.kneeRightJoint = (joints[JointType.KneeRight]);
-                                    _mainWindow.fogDetector.hipRightJoint = (joints[JointType.HipRight]);
-                                    _mainWindow.fogDetector.ankleRightJoint = (joints[JointType.AnkleRight]);
-
-                                    //For body orientation detetction
-                                    _mainWindow.fogDetector.shoulderRightJoint = (joints[JointType.ShoulderRight]);
-                                    _mainWindow.fogDetector.shoulderLeftJoint = (joints[JointType.ShoulderLeft]);
-                                }
-
-                                //3D space point
-                                CameraSpacePoint jointPosition = joints[jointType].Position;
-                                //CameraSpacePoint LeftFoot_jointPosition = joints[JointType.FootLeft].Position;
-                                //CameraSpacePoint RightFoot_jointPosition = joints[JointType.FootRight].Position;
-
-                                // 2D space point
-                                Point point = new Point();
-
-                                ColorSpacePoint colorPoint = kinectSensor.CoordinateMapper.MapCameraPointToColorSpace(jointPosition);
-                                //DepthSpacePoint LeftFoot_colorPoint = kinectSensor.CoordinateMapper.MapCameraPointToDepthSpace(LeftFoot_jointPosition);
-                                //ColorSpacePoint RightFoot_colorPoint = kinectSensor.CoordinateMapper.MapCameraPointToColorSpace(RightFoot_jointPosition);
-
-                                point.X = float.IsInfinity(colorPoint.X) ? 0 : colorPoint.X;
-                                point.Y = float.IsInfinity(colorPoint.Y) ? 0 : colorPoint.Y;
-                                point.X = point.X / 3;
-                                point.Y = point.Y / 3;
-
-                                // Draw
-                                System.Windows.Shapes.Ellipse ellipse = new System.Windows.Shapes.Ellipse
-                                {
-                                    Fill = Brushes.Red,
-                                    Width = 5,
-                                    Height = 5
-                                };
-
-                                Canvas.SetLeft(ellipse, point.X - ellipse.Width / 2);
-                                Canvas.SetTop(ellipse, point.Y - ellipse.Height / 2);
-
-                                _mainWindow.canvas.Children.Add(ellipse);
-
-                            }
-                            if (_mainWindow.fogDetector != null && _mainWindow.fogDetector.Visibility == Visibility.Visible)
-                            {
-                                _mainWindow.fogDetector.UpdateHeadHeightAndFallState();
-                                _mainWindow.fogDetector.UpdateVerticalLaserPosition();
-                                _mainWindow.fogDetector.DetectFreezingOfGait();
-                                _mainWindow.fogDetector.UpdateBodyOrientation();
-                                _mainWindow.fogDetector.WriteDataSample();
-                                _mainWindow.fogDetector.UpdateGaitInformation();
-
-                            }
-
-                                SendImage();
-                                 SendMonitoringInfo();
-
-                        }
-
+                        _mainWindow.fogDetector.A_floor = bodyFrame.FloorClipPlane.X;
+                        _mainWindow.fogDetector.B_floor = bodyFrame.FloorClipPlane.Y;
+                        _mainWindow.fogDetector.C_floor = bodyFrame.FloorClipPlane.Z;
+                        _mainWindow.fogDetector.D_floor = bodyFrame.FloorClipPlane.W;
                     }
-
                 }
             }
 
+            if (!dataReceived)
+            {
+                return;
+            }
+
+            using (DrawingContext drawingContext = drawingGroup.Open())
+            {
+                ImageBrush imageBrush = new ImageBrush
+                {
+                    ImageSource = colorBitmap
+                };
+
+                drawingContext.DrawRectangle(
+                    imageBrush,
+                    null,
+                    new Rect(0.0, 0.0, displayWidth, displayHeight));
+            }
+
+            _mainWindow.canvas.Children.Clear();
+
+            foreach (Body body in bodies)
+            {
+                if (!body.IsTracked)
+                {
+                    continue;
+                }
+
+                IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
+
+                foreach (JointType jointType in joints.Keys)
+                {
+                    if (_mainWindow.fogDetector != null &&
+                        _mainWindow.fogDetector.Visibility == Visibility.Visible)
+                    {
+                        _mainWindow.fogDetector.leftFootJoint = joints[JointType.AnkleLeft];
+                        _mainWindow.fogDetector.rightFootJoint = joints[JointType.AnkleRight];
+                        _mainWindow.fogDetector.headJoint = joints[JointType.Head];
+
+                        // Joints used for knee-angle detection.
+                        _mainWindow.fogDetector.spineMidJoint = joints[JointType.SpineMid];
+                        _mainWindow.fogDetector.spineBaseJoint = joints[JointType.SpineBase];
+                        _mainWindow.fogDetector.kneeLeftJoint = joints[JointType.KneeLeft];
+                        _mainWindow.fogDetector.hipLeftJoint = joints[JointType.HipLeft];
+                        _mainWindow.fogDetector.ankleLeftJoint = joints[JointType.AnkleLeft];
+                        _mainWindow.fogDetector.kneeRightJoint = joints[JointType.KneeRight];
+                        _mainWindow.fogDetector.hipRightJoint = joints[JointType.HipRight];
+                        _mainWindow.fogDetector.ankleRightJoint = joints[JointType.AnkleRight];
+
+                        // Joints used for body-orientation detection.
+                        _mainWindow.fogDetector.shoulderRightJoint = joints[JointType.ShoulderRight];
+                        _mainWindow.fogDetector.shoulderLeftJoint = joints[JointType.ShoulderLeft];
+                    }
+
+                    CameraSpacePoint jointPosition = joints[jointType].Position;
+                    ColorSpacePoint colorPoint =
+                        kinectSensor.CoordinateMapper.MapCameraPointToColorSpace(jointPosition);
+
+                    Point point = new Point
+                    {
+                        X = (float.IsInfinity(colorPoint.X) ? 0 : colorPoint.X) / 3,
+                        Y = (float.IsInfinity(colorPoint.Y) ? 0 : colorPoint.Y) / 3
+                    };
+
+                    System.Windows.Shapes.Ellipse ellipse = new System.Windows.Shapes.Ellipse
+                    {
+                        Fill = Brushes.Red,
+                        Width = 5,
+                        Height = 5
+                    };
+
+                    Canvas.SetLeft(ellipse, point.X - ellipse.Width / 2);
+                    Canvas.SetTop(ellipse, point.Y - ellipse.Height / 2);
+                    _mainWindow.canvas.Children.Add(ellipse);
+                }
+
+                if (_mainWindow.fogDetector != null &&
+                    _mainWindow.fogDetector.Visibility == Visibility.Visible)
+                {
+                    _mainWindow.fogDetector.UpdateHeadHeightAndFallState();
+                    _mainWindow.fogDetector.UpdateVerticalLaserPosition();
+                    _mainWindow.fogDetector.DetectFreezingOfGait();
+                    _mainWindow.fogDetector.UpdateBodyOrientation();
+                    _mainWindow.fogDetector.WriteDataSample();
+                    _mainWindow.fogDetector.UpdateGaitInformation();
+                }
+
+                SendImage();
+                SendMonitoringInfo();
+            }
         }
 
     }
