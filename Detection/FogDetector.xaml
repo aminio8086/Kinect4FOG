@@ -6,7 +6,7 @@
        
      
         mc:Ignorable="d"
-        Title="DataWindow" Height="581.955" Width="1087.789">
+        Title="DataWindow" Height="581.955" Width="1087.789" Closing="FogDetector_Closing">
 
 
     <Window.Resources>
@@ -83,7 +83,7 @@
         <Image x:Name="_imageFalling" HorizontalAlignment="Left" Height="145" Margin="796,417,0,-19" VerticalAlignment="Top" Width="133" Source="/ParkinsonDetectionSystem;component/Images/Falling.PNG" Visibility="Hidden"/>
         <Label Content="Falling Incident" HorizontalAlignment="Left" Margin="684,317,0,0" VerticalAlignment="Top" Height="27" Width="110"/>
         <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="72" Margin="431,458,0,0" VerticalAlignment="Top" Width="235"/>
-        <Label x:Name="_lableFOG" Content="FOG has happened. Initiating visual Cue!" HorizontalAlignment="Left" Margin="431,484,0,0" VerticalAlignment="Top" Height="33" Width="234" FontWeight="Bold" Background="Red" Foreground="#FFF3FF00"/>
+        <Label x:Name="_lableFOG" Content="FOG has happened. Initiating visual Cue!" HorizontalAlignment="Left" Margin="431,484,0,0" VerticalAlignment="Top" Height="33" Width="234" FontWeight="Bold" Background="Red" Foreground="#FFF3FF00" Visibility="Hidden"/>
         <Label Content="FOG Status" HorizontalAlignment="Left" Margin="431,431,0,0" VerticalAlignment="Top" Height="27" Width="110"/>
         <CheckBox x:Name="FallCheckbox" Content="Fall Detector" HorizontalAlignment="Left" Margin="489,65,0,0" VerticalAlignment="Top"/>
 

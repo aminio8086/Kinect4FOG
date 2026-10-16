@@ -28,7 +28,7 @@ namespace Parkinson.Detection
         double _leftProjectionAngleDegrees = 0;
         double _rightProjectionAngleDegrees = 0;
 
-        private readonly SerialController _serialController = new SerialController();
+        private readonly SerialController _serialController;
 
         private Thread _threadExcel;
         private ThreadStart _startThreadExcel;
@@ -40,18 +40,18 @@ namespace Parkinson.Detection
         public Joint headJoint;
         private float _oldHeadHeight = 0;
         private Label[] _labelHeadHeight;
-        private int _lableSecondCounter = 0;
-        private int _lableXaxisIncrement = 0;
-        private bool _lableOneTimeGenerator = false;
+        private int _labelSecondCounter = 0;
+        private int _labelXAxisIncrement = 0;
+        private bool _labelsInitialised = false;
 
         private bool fallAlertWindowShown = false;
 
-        //For recieving UDP commands from client
+        //For receiving UDP commands from client
         private Thread _udpReceiveThread;
         private ThreadStart _udpReceiveThreadStart;
-        private const int _udpListenPort = 8089;
-        private UdpClient _udpListener = new UdpClient(_udpListenPort);
-        private IPEndPoint _udpIP = new IPEndPoint(IPAddress.Any, _udpListenPort);
+        private const int UdpCommandPort = 8089;
+        private UdpClient _udpListener = new UdpClient(UdpCommandPort);
+        private IPEndPoint _udpIP = new IPEndPoint(IPAddress.Any, UdpCommandPort);
         private byte[] _udpReceiveBytes;
 
 
@@ -84,7 +84,258 @@ namespace Parkinson.Detection
         private int _leftFootstepcountTotal = 0;
         private int _rightFootstepcountTotal = 0;
 
-            // Legacy foot-to-floor distance approach removed; knee-angle detection is used instead.
+        //DISABLEED FOR LENSE DISTORTION ISSUE
+        //private float _distanceLeftFoot = 0;
+        //private float _distanceRightFoot = 0;
+
+        private int _leftFootStrideDuration = 0;
+        private int _rightFootStrideDuration = 0;
+
+        private const double KneeAngleThresholdDegrees = 170.0;
+        private const int MaximumStrideDurationMilliseconds = 900;
+        private const int MinimumStrideDurationMilliseconds = 200;
+
+        //Spine angle detection
+        public Joint spineMidJoint;
+        public Joint kneeLeftJoint;
+        public Joint kneeRightJoint;
+        public Joint spineBaseJoint;
+
+
+        // Body orientation detection
+        public Joint shoulderRightJoint;
+        public Joint shoulderLeftJoint;
+
+        private double _resultShoulderTurnRight = 0;
+        private double _resultShoulderTurnLeft = 0;
+
+
+        //Knee angle detection
+        public Joint hipLeftJoint;
+        public Joint hipRightJoint;
+        public Joint ankleLeftJoint;
+        public Joint ankleRightJoint;
+
+        private double _angleKneeLeft = 0;
+        private double _angleKneeRight = 0;
+
+
+        //FloorPlane Detection
+        public float A_floor, B_floor, C_floor, D_floor = 0;
+
+
+        //To apply delay for the horizontal motor
+        private dynamic HorizontalMotorRotation = new System.Windows.Threading.DispatcherTimer();
+
+        private dynamic FOGChecker = new System.Windows.Threading.DispatcherTimer();
+        private dynamic FOGHappened = new System.Windows.Threading.DispatcherTimer();
+        private dynamic resetFOGIndicator = new System.Windows.Threading.DispatcherTimer();
+        private dynamic SystemTimer = new System.Windows.Threading.DispatcherTimer();
+        private dynamic LeftStrideTimer = new System.Windows.Threading.DispatcherTimer();
+        private dynamic RightStrideTimer = new System.Windows.Threading.DispatcherTimer();
+
+        private dynamic grapherTimer = new System.Windows.Threading.DispatcherTimer();
+
+        private Stopwatch stopwatchLeft = new Stopwatch();
+        private Stopwatch stopwatchRight = new Stopwatch();
+
+        private Stopwatch fallover = new Stopwatch();
+
+
+        private bool fogOccurred = false;
+
+
+
+        //#############################################################################################################################//
+
+        private void FogDetector_Closing(object sender, CancelEventArgs e)
+        {
+            e.Cancel = true;
+            Hide();
+        }
+
+        //#############################################################################################################################//
+
+        public FogDetector()
+        {
+
+            InitializeComponent();
+            _labelHeadHeight = new Label[12];
+
+            //To remove bug at the beginning of plot drawing
+            _oldHeadHeight = headJoint.Position.Y * 100;
+
+            //For receiving udp
+            _udpReceiveThreadStart = new ThreadStart(ReceiveUdpCommands);
+            _udpReceiveThread = new Thread(_udpReceiveThreadStart) { IsBackground = true };
+            _udpReceiveThread.Start();
+
+
+
+
+            HorizontalMotorRotation.Interval = TimeSpan.FromMilliseconds(150);
+            HorizontalMotorRotation.Tick += new EventHandler(HorizontalMotorRotation_Tick);
+
+            HorizontalMotorRotation.Start();
+
+
+            //Timer for fall detection
+            FOGChecker.Interval = TimeSpan.FromMilliseconds(2000);
+            FOGChecker.Tick += new EventHandler(FOGChecker_Tick);
+            FOGChecker.Start();
+
+            FOGHappened.Interval = TimeSpan.FromMilliseconds(1800);
+            FOGHappened.Tick += new EventHandler(FOGHappened_Tick);
+
+
+            resetFOGIndicator.Interval = TimeSpan.FromSeconds(2);
+            resetFOGIndicator.Tick += new EventHandler(resetFOGIndicator_Tick);
+
+            grapherTimer.Interval = TimeSpan.FromSeconds(1);
+            grapherTimer.Tick += new EventHandler(grapherTimer_Tick);
+            grapherTimer.Start();
+
+
+
+        }
+
+
+        public void UpdateHeadHeightAndFallState()
+        {
+
+            distanceHeadCurrent = (((headJoint.Position.X * A_floor) + (headJoint.Position.Y * B_floor) + (headJoint.Position.Z * C_floor) + D_floor) / Math.Sqrt((A_floor * A_floor) + (B_floor * B_floor) + (C_floor * C_floor)));
+
+            distanceHeadCurrentAbs = Math.Abs(distanceHeadCurrent);
+
+
+            decimal HeaddecimalValue = Math.Round((decimal)distanceHeadCurrent, 3);
+
+            distanceHeadCurrent = (float)HeaddecimalValue;
+
+            if (FallCheckbox.IsChecked == true)
+            {
+                if (distanceHeadCurrent <= 0.3)
+                {
+                    fallover.Start();
+                    _imageStanding.Visibility = Visibility.Hidden;
+                    _imageFalling.Visibility = Visibility.Visible;
+
+                    if (fallAlertWindowShown == false)
+                    {
+                        FallAlertWindow fallAlertWindow = new FallAlertWindow();
+                        fallAlertWindow.Show();
+                        fallAlertWindowShown = true;
+                    }
+
+                }
+                if (fallover.IsRunning && fallover.ElapsedMilliseconds >= 1000 && distanceHeadCurrent >= 0.5)
+                {
+                    _imageStanding.Visibility = Visibility.Visible;
+                    _imageFalling.Visibility = Visibility.Hidden;
+                    fallover.Stop();
+                    fallover.Reset();
+                    fallAlertWindowShown = false;
+                    FallCheckbox.IsChecked = false;
+                }
+
+
+
+            }
+
+        }
+        private void grapherTimer_Tick(System.Object sender, EventArgs e)
+        {
+            _oldHeadHeight = headJoint.Position.Y * 100;
+            _labelSecondCounter++;
+
+        }
+
+        public void UpdateHeadHeightPlot()
+        {
+
+            int labelLocation = 675;
+
+
+            if (_labelsInitialised == false)
+            {
+                for (int i = 0; i <= 11; i++)
+                {
+
+                    _labelHeadHeight[i] = new Label();
+                    _labelHeadHeight[i].Name = "_labelHeight" + i.ToString();
+                    _labelHeadHeight[i].Margin = new Thickness(labelLocation, 262, 0, 0);
+
+                    _labelHeadHeight[i].Content = i.ToString();
+                    grid.Children.Add(_labelHeadHeight[i]);
+
+                    labelLocation = labelLocation + 30;
+                }
+                _labelsInitialised = true;
+            }
+            if (_labelSecondCounter >= 12)
+            {
+
+                for (int i = 0; i <= 11; i++)
+                {
+
+                    int labelValue = Convert.ToInt32(_labelHeadHeight[i].Content);
+                    labelValue += 12;
+                    _labelHeadHeight[i].Content = labelValue.ToString();
+
+                }
+
+
+                _labelSecondCounter = 0;
+                _labelXAxisIncrement = 0;
+
+                grapher.Children.Clear();
+            }
+
+            System.Windows.Shapes.Line _headHeightGraphLine = new System.Windows.Shapes.Line();
+            _headHeightGraphLine.Stroke = System.Windows.Media.Brushes.Red;
+            _headHeightGraphLine.X1 = _labelXAxisIncrement - 1;
+            _headHeightGraphLine.X2 = _labelXAxisIncrement;
+            _headHeightGraphLine.Y1 = Math.Abs(headJoint.Position.Y * 100);
+            _headHeightGraphLine.Y2 = Math.Abs(headJoint.Position.Y * 100);
+            _headHeightGraphLine.HorizontalAlignment = HorizontalAlignment.Left;
+            _headHeightGraphLine.VerticalAlignment = VerticalAlignment.Center;
+            _headHeightGraphLine.StrokeThickness = 3;
+
+            grapher.Children.Add(_headHeightGraphLine);
+
+            _labelXAxisIncrement++;
+
+
+        }
+        //#############################################################################################################################//
+
+        //Create Excel sheet with the given information
+        private void OpenExcel_Click(object sender, RoutedEventArgs e)
+        {
+
+            switch (_rectxtdata)
+            {
+                case true:
+                    _rectxtdata = false;
+                    OpenExcel.Content = "Rec";
+                    break;
+                case false:
+                    _rectxtdata = true;
+                    OpenExcel.Content = "Pause";
+                    break;
+
+            }
+
+            /*
+            _excelworkbook = _excelInstance.Workbooks.Add(Excel.XlSheetType.xlWorksheet);
+            _excelWorksheet = (Excel.Worksheet)_excelInstance.ActiveSheet;
+            _excelInstance.Visible = true;
+            _excelWorksheet.Cells[1, 1] = "Frame Number";
+            _excelWorksheet.Cells[1, 2] = "distanceLeft";
+            _excelWorksheet.Cells[1, 3] = "distanceRight";
+            _excelWorksheet.Cells[1, 4] = "Left Stride";
+            _excelWorksheet.Cells[1, 5] = "Right Stride";
+            */
 
 
         }
@@ -113,7 +364,7 @@ namespace Parkinson.Detection
             TB_rightStride.Text = _rightFootStrideDuration.ToString();
 
 
-            plotter();
+            UpdateHeadHeightPlot();
 
 
             TB_udp.Text = distanceHeadCurrentAbs.ToString();
@@ -138,7 +389,7 @@ namespace Parkinson.Detection
 
 
 
-        public void CSVwriter()
+        public void WriteDataSample()
         {
 
 
@@ -151,6 +402,7 @@ namespace Parkinson.Detection
                     sw = new StreamWriter(path);
 
                 }
+                //  sw = File.CreateText(path);
 
                 if (_txtRowNum == 0)
                 {
@@ -258,8 +510,9 @@ namespace Parkinson.Detection
         /// Determines the upper body orientation in degrees (facing camera = 0)
         /// for the use of the horizontal motor
         /// </summary>
-        public void BodyRotate()
+        public void UpdateBodyOrientation()
         {
+          //  test = true;
             float leftShoulder = shoulderLeftJoint.Position.Z;
             float rightShoulder = shoulderRightJoint.Position.Z;
 
@@ -271,6 +524,7 @@ namespace Parkinson.Detection
                 _resultShoulderTurnRight *= 1000;
 
                 _resultShoulderTurnRight = Math.Ceiling(_resultShoulderTurnRight);
+            //    _resultShoulderTurnRight = Math.Round(_resultShoulderTurnRight / 10.0) * 10;
 
                 }
 
@@ -282,6 +536,7 @@ namespace Parkinson.Detection
                 _resultShoulderTurnLeft *= 1000;
 
                 _resultShoulderTurnLeft = Math.Ceiling(_resultShoulderTurnLeft);
+           //     _resultShoulderTurnLeft = Math.Round(_resultShoulderTurnLeft / 10.0) * 10;
                 
                 }
         }
@@ -294,30 +549,53 @@ namespace Parkinson.Detection
         public void DetectFreezingOfGait()
         {
 
-            // Legacy foot-to-floor distance approach removed; knee-angle detection is used instead.
+            //DISABLEED FOR LENSE DISTORTION ISSUE
+            //Determine the distance of the left foot to the ground
+            /*   double temp = Math.Sqrt((leftFoot.Position.X * leftFoot.Position.X) + (leftFoot.Position.Y * leftFoot.Position.Y) + (leftFoot.Position.Z * leftFoot.Position.Z));
+              float divisor = Convert.ToSingle(temp);
+              distanceLeftFoot = ((A * leftFoot.Position.X) + (B * leftFoot.Position.Y) + (C * leftFoot.Position.Z) + D);
+               decimal LeftdecimalValue = Math.Round((decimal)distanceLeftFoot, 3);
+               distanceLeftFoot = (float)LeftdecimalValue;
+
+               distanceLeftFoot = (leftFoot.Position.Z-0.03592f)/0.44f;
+
+               //  float tempD = ((leftFootPosZ * 100) / 4.285112f)/0.58f;
+               //  distanceLeftFoot = distanceLeftFoot * tempD;
+
+               distanceLeftFoot = (float)LeftdecimalValue;
+
+               //Determine the distance of the right foot to the ground
+
+               distanceRightFoot = ((A * rightFoot.Position.X) + (B * rightFoot.Position.Y) + (C * rightFoot.Position.Z) + D);
+               decimal RightdecimalValue = Math.Round((decimal)distanceRightFoot, 3);
+               distanceRightFoot = (float)RightdecimalValue;
+               */
 
 
 
-            Vector3D hipLeftVect = new Vector3D(hipLeftJoint.Position.X, hipLeftJoint.Position.Y, hipLeftJoint.Position.Z);
-            Vector3D kneeLeftVect = new Vector3D(kneeLeftJoint.Position.X, kneeLeftJoint.Position.Y, kneeLeftJoint.Position.Z);
-            Vector3D AnkleLeftVect = new Vector3D(ankleLeftJoint.Position.X, ankleLeftJoint.Position.Y, ankleLeftJoint.Position.Z);
-            _angleKneeLeft = AngleBetweenTwoVectors(kneeLeftVect - hipLeftVect, kneeLeftVect - AnkleLeftVect);
+            Vector3D hipLeftVector = new Vector3D(hipLeftJoint.Position.X, hipLeftJoint.Position.Y, hipLeftJoint.Position.Z);
+            Vector3D kneeLeftVector = new Vector3D(kneeLeftJoint.Position.X, kneeLeftJoint.Position.Y, kneeLeftJoint.Position.Z);
+            Vector3D ankleLeftVector = new Vector3D(ankleLeftJoint.Position.X, ankleLeftJoint.Position.Y, ankleLeftJoint.Position.Z);
+            _angleKneeLeft = CalculateAngleDegrees(kneeLeftVector - hipLeftVector, kneeLeftVector - ankleLeftVector);
 
            // decimal AngleKneeLeftRound = Math.Round((decimal)_angleKneeLeft, 3);
+         //   _angleKneeLeft = (float)AngleKneeLeftRound;
 
 
-            Vector3D hipRightVect = new Vector3D(hipRightJoint.Position.X, hipRightJoint.Position.Y, hipRightJoint.Position.Z);
-            Vector3D kneeRightVect = new Vector3D(kneeRightJoint.Position.X, kneeRightJoint.Position.Y, kneeRightJoint.Position.Z);
-            Vector3D AnkleRightVect = new Vector3D(ankleRightJoint.Position.X, ankleRightJoint.Position.Y, ankleRightJoint.Position.Z);
-            _angleKneeRight = AngleBetweenTwoVectors(kneeRightVect - hipRightVect, kneeRightVect - AnkleRightVect);
+            Vector3D hipRightVector = new Vector3D(hipRightJoint.Position.X, hipRightJoint.Position.Y, hipRightJoint.Position.Z);
+            Vector3D kneeRightVector = new Vector3D(kneeRightJoint.Position.X, kneeRightJoint.Position.Y, kneeRightJoint.Position.Z);
+            Vector3D ankleRightVector = new Vector3D(ankleRightJoint.Position.X, ankleRightJoint.Position.Y, ankleRightJoint.Position.Z);
+            _angleKneeRight = CalculateAngleDegrees(kneeRightVector - hipRightVector, kneeRightVector - ankleRightVector);
 
          //   decimal AngleKneeRightRound = Math.Round((decimal)_angleKneeRight, 3);
+        //    _angleKneeRight = (float)AngleKneeRightRound;
 
             //#############################################################################################################################//
 
             //Check if FOG has happened
             if (_angleKneeLeft >= KneeAngleThresholdDegrees || _angleKneeRight >= KneeAngleThresholdDegrees)
             {
+                //   FOGHappened.Start();
             }
 
             //#############################################################################################################################//
@@ -459,7 +737,7 @@ namespace Parkinson.Detection
         /// <param name="vectorA"></param>
         /// <param name="vectorB"></param>
         /// <returns></returns>
-        public double AngleBetweenTwoVectors(Vector3D vectorA, Vector3D vectorB)
+        public double CalculateAngleDegrees(Vector3D vectorA, Vector3D vectorB)
         {
             double dotProduct = 0.0;
             vectorA.Normalize();
@@ -477,6 +755,8 @@ namespace Parkinson.Detection
         /// </summary>
         public void UpdateVerticalLaserPosition()
         {
+         //   if (fogOccurred == true)
+         //   {
 
                 double a = 136d;
 
@@ -538,9 +818,12 @@ namespace Parkinson.Detection
 
 
                 }
+          //  }else {
+
+          //      _serialController.SendServoCommand(("1" + (23)).ToString());
 
 
-
+         //   }
             
 
         
@@ -554,6 +837,8 @@ namespace Parkinson.Detection
         /// </summary>
         private void HorizontalMotorRotation_Tick(System.Object sender, EventArgs e)
         {
+            //  if (SerialCheckbox.IsChecked == true)
+            //  {
 
             if ((Math.Abs(_resultShoulderTurnLeft - _resultShoulderTurnRight) > 20) || (Math.Abs(_resultShoulderTurnRight - _resultShoulderTurnLeft) > 20))
             {
@@ -562,18 +847,29 @@ namespace Parkinson.Detection
                 {
                     if (Math.Abs(90 - _resultShoulderTurnLeft) >= 40 && Math.Abs(90 - _resultShoulderTurnLeft) <= 70)
                     {
+                        //    _serialController.SendServoCommand("2" + (Math.Abs(90 - _resultShoulderTurnLeft).ToString()));
+                        //          _serialController.SendServoCommand("1" + (_leftProjectionAngleDegrees-10).ToString());
+                        //test = false;
                     }
                 }
                 if (_resultShoulderTurnRight > _resultShoulderTurnLeft)
                 {
                     if (Math.Abs(90 + _resultShoulderTurnRight) >= 120 && Math.Abs(90 + _resultShoulderTurnRight) <= 140)
                     {
+                        //  _serialController.SendServoCommand("2" + (Math.Abs(90 + _resultShoulderTurnRight).ToString()));
+                        //          _serialController.SendServoCommand("1" + (_leftProjectionAngleDegrees - 10).ToString());
+                        //test = false;
                     }
                 }
+                // }
                 else
                 {
 
+                   // _serialController.SendServoCommand("290");
+                    //    _serialController.SendServoCommand("1" + (_leftProjectionAngleDegrees-5).ToString());
+                    //   test = false;
                 }
+                // }
                 TB_temp1.Text = (Math.Abs(90 + _resultShoulderTurnRight)).ToString();
                 TB_temp2.Text = (Math.Abs(90 - _resultShoulderTurnLeft)).ToString();
             }
@@ -581,7 +877,7 @@ namespace Parkinson.Detection
 
         //#############################################################################################################################//
         /// <summary>
-        /// Recieve signal from the client app for commands
+        /// Receive signal from the client app for commands
         /// </summary>
         private void ReceiveUdpCommands()
         {
