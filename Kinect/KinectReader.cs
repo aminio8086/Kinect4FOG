@@ -29,8 +29,6 @@ namespace Parkinson.Detection
             _mainWindow = inWindow;
 
         }
-
-        //private Point point;
         /// <summary>
         /// Reader for color frames
         /// </summary>
@@ -139,8 +137,6 @@ namespace Parkinson.Detection
         /// <summary>
         /// List of colors for each body tracked
         /// </summary>
-        //private List<Pen> bodyColors;
-
         /// <summary>
         /// Current status text to display
         /// </summary>
@@ -250,8 +246,6 @@ private void SendImage()
             this.imageSource = new DrawingImage(this.drawingGroup);
 
             // use the window object as the view model in this simple example
-            // this.DataContext = this;
-
             _mainWindow.Image.Source = imageSource;
 
             if (bodyFrameReader != null)
@@ -357,9 +351,6 @@ private void SendImage()
                         var stride = width * ((tbBitmap.Format.BitsPerPixel + 7) / 8);
 
                         _bitmapData = new byte[height * stride];
-
-                      //  tbBitmap.CopyPixels(bitmapData, stride, 0);
-
                         var stream = new MemoryStream();
                         var encoder = new JpegBitmapEncoder();
                         encoder.Frames.Add(BitmapFrame.Create(tbBitmap));

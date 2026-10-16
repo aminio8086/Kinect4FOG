@@ -68,9 +68,6 @@ namespace Parkinson.Detection
         private int _rightFootstepcountTotal = 0;
 
         //DISABLEED FOR LENSE DISTORTION ISSUE
-        //private float _distanceLeftFoot = 0;
-        //private float _distanceRightFoot = 0;
-
         private int _leftFootStrideDuration = 0;
         private int _rightFootStrideDuration = 0;
 
@@ -126,19 +123,11 @@ namespace Parkinson.Detection
 
 
         private bool fogOccurred = false;
-
-
-
-        //#############################################################################################################################//
-
         private void FogDetector_Closing(object sender, CancelEventArgs e)
         {
             e.Cancel = true;
             Hide();
         }
-
-        //#############################################################################################################################//
-
         public FogDetector()
             : this(new SerialController())
         {
@@ -290,8 +279,6 @@ namespace Parkinson.Detection
 
 
         }
-        //#############################################################################################################################//
-
         //Create Excel sheet with the given information
         private void RecordDataButton_Click(object sender, RoutedEventArgs e)
         {
@@ -309,9 +296,6 @@ namespace Parkinson.Detection
 
             }
 }
-
-        //#############################################################################################################################//
-
         /// <summary>
         /// Show gait information on the GUI
         /// </summary>
@@ -338,7 +322,6 @@ namespace Parkinson.Detection
 
 
             TB_udp.Text = distanceHeadCurrentAbs.ToString();
-            //#############################################################################################################################//
 }
 
 
@@ -358,8 +341,6 @@ namespace Parkinson.Detection
                     _recordingWriter = new StreamWriter(_recordingFilePath);
 
                 }
-                //  _recordingWriter = File.CreateText(_recordingFilePath);
-
                 if (_textRowNumber == 0)
                 {
                     _recordingWriter.WriteLine(_textRowNumber + " "
@@ -425,7 +406,6 @@ namespace Parkinson.Detection
 
         public void UpdateBodyOrientation()
         {
-          //  test = true;
             float leftShoulder = shoulderLeftJoint.Position.Z;
             float rightShoulder = shoulderRightJoint.Position.Z;
 
@@ -436,8 +416,7 @@ namespace Parkinson.Detection
                 _resultShoulderTurnRight = Math.Asin(_resultShoulderTurnRight);
                 _resultShoulderTurnRight *= 1000;
 
-                _resultShoulderTurnRight = Math.Ceiling(_resultShoulderTurnRight);
-            //    _resultShoulderTurnRight = Math.Round(_resultShoulderTurnRight / 10.0) * 10;
+                _resultShoulderTurnRight = Math.Ceiling(_resultShoulderTurnRight);
 
                 }
 
@@ -448,13 +427,10 @@ namespace Parkinson.Detection
                 _resultShoulderTurnLeft = Math.Asin(_resultShoulderTurnLeft);
                 _resultShoulderTurnLeft *= 1000;
 
-                _resultShoulderTurnLeft = Math.Ceiling(_resultShoulderTurnLeft);
-           //     _resultShoulderTurnLeft = Math.Round(_resultShoulderTurnLeft / 10.0) * 10;
+                _resultShoulderTurnLeft = Math.Ceiling(_resultShoulderTurnLeft);
                 
                 }
         }
-
-        //#############################################################################################################################//       
         /// <summary>
         /// Detect the Freezing of Gait based on the number of steps
         /// Features stride duration
@@ -462,27 +438,9 @@ namespace Parkinson.Detection
         public void DetectFreezingOfGait()
         {
 
-            //DISABLEED FOR LENSE DISTORTION ISSUE
-            //Determine the distance of the left foot to the ground
-            /*   double temp = Math.Sqrt((leftFoot.Position.X * leftFoot.Position.X) + (leftFoot.Position.Y * leftFoot.Position.Y) + (leftFoot.Position.Z * leftFoot.Position.Z));
-              float divisor = Convert.ToSingle(temp);
-              distanceLeftFoot = ((A * leftFoot.Position.X) + (B * leftFoot.Position.Y) + (C * leftFoot.Position.Z) + D);
-               decimal LeftdecimalValue = Math.Round((decimal)distanceLeftFoot, 3);
-               distanceLeftFoot = (float)LeftdecimalValue;
+            // Knee-angle detection is used; the abandoned foot-to-floor experiment has been removed.
 
-               distanceLeftFoot = (leftFoot.Position.Z-0.03592f)/0.44f;
 
-               //  float tempD = ((leftFootPosZ * 100) / 4.285112f)/0.58f;
-               //  distanceLeftFoot = distanceLeftFoot * tempD;
-
-               distanceLeftFoot = (float)LeftdecimalValue;
-
-               //Determine the distance of the right foot to the ground
-
-               distanceRightFoot = ((A * rightFoot.Position.X) + (B * rightFoot.Position.Y) + (C * rightFoot.Position.Z) + D);
-               decimal RightdecimalValue = Math.Round((decimal)distanceRightFoot, 3);
-               distanceRightFoot = (float)RightdecimalValue;
-               */
 
 
 
@@ -490,32 +448,14 @@ namespace Parkinson.Detection
             Vector3D kneeLeftVector = new Vector3D(kneeLeftJoint.Position.X, kneeLeftJoint.Position.Y, kneeLeftJoint.Position.Z);
             Vector3D ankleLeftVector = new Vector3D(ankleLeftJoint.Position.X, ankleLeftJoint.Position.Y, ankleLeftJoint.Position.Z);
             _angleKneeLeft = CalculateAngleDegrees(kneeLeftVector - hipLeftVector, kneeLeftVector - ankleLeftVector);
-
-           // decimal AngleKneeLeftRound = Math.Round((decimal)_angleKneeLeft, 3);
-         //   _angleKneeLeft = (float)AngleKneeLeftRound;
-
-
             Vector3D hipRightVector = new Vector3D(hipRightJoint.Position.X, hipRightJoint.Position.Y, hipRightJoint.Position.Z);
             Vector3D kneeRightVector = new Vector3D(kneeRightJoint.Position.X, kneeRightJoint.Position.Y, kneeRightJoint.Position.Z);
             Vector3D ankleRightVector = new Vector3D(ankleRightJoint.Position.X, ankleRightJoint.Position.Y, ankleRightJoint.Position.Z);
             _angleKneeRight = CalculateAngleDegrees(kneeRightVector - hipRightVector, kneeRightVector - ankleRightVector);
-
-         //   decimal AngleKneeRightRound = Math.Round((decimal)_angleKneeRight, 3);
-        //    _angleKneeRight = (float)AngleKneeRightRound;
-
-            //#############################################################################################################################//
-
             //Check if FOG has happened
             if (_angleKneeLeft >= KneeAngleThresholdDegrees || _angleKneeRight >= KneeAngleThresholdDegrees)
             {
-                //   FOGHappened.Start();
             }
-
-            //#############################################################################################################################//
-
-   
-
-
             //Determine the number of left foot steps in total and given time
             if ((_angleKneeLeft <= KneeAngleThresholdDegrees))
             {
@@ -563,19 +503,7 @@ namespace Parkinson.Detection
                 stopwatchRight.Reset();
 
             }
-
-
-
-
-            //#############################################################################################################################//
-
-
-
-            //#############################################################################################################################//            
-           
         }
-        //#############################################################################################################################//
-
         /// <summary>
         /// Checking the number of time within 2 secs the left foot has been touched down
         /// </summary>
@@ -643,7 +571,6 @@ namespace Parkinson.Detection
 
             }
         }
-        //#############################################################################################################################//
         /// <summary>
         /// Determines knees angle for step calculation
         /// </summary>
@@ -660,17 +587,11 @@ namespace Parkinson.Detection
 
             return (double)Math.Acos(dotProduct) / Math.PI * 180;
         }
-
-
-        //#############################################################################################################################//
         /// <summary>
         /// Send signal to the micro-controller for the vertical laser movement
         /// </summary>
         public void UpdateVerticalLaserPosition()
         {
-         //   if (fogOccurred == true)
-         //   {
-
                 double a = 136d;
 
                 double c = leftFootJoint.Position.Z * 100;           //the distance from a body joint to the pointer
@@ -730,29 +651,13 @@ namespace Parkinson.Detection
 
 
 
-                }
-          //  }else {
-
-          //      _serialController.SendServoCommand(("1" + (23)).ToString());
-
-
-         //   }
-            
-
-        
-
-
+                }
         }
-
-        //#############################################################################################################################//
         /// <summary>
         /// Send signal in intervals to the micro-controller for the horizontal laser movement
         /// </summary>
         private void HorizontalMotorRotation_Tick(System.Object sender, EventArgs e)
         {
-            //  if (SerialCheckbox.IsChecked == true)
-            //  {
-
             if ((Math.Abs(_resultShoulderTurnLeft - _resultShoulderTurnRight) > 20) || (Math.Abs(_resultShoulderTurnRight - _resultShoulderTurnLeft) > 20))
             {
 
@@ -760,35 +665,21 @@ namespace Parkinson.Detection
                 {
                     if (Math.Abs(90 - _resultShoulderTurnLeft) >= 40 && Math.Abs(90 - _resultShoulderTurnLeft) <= 70)
                     {
-                        //    _serialController.SendServoCommand("2" + (Math.Abs(90 - _resultShoulderTurnLeft).ToString()));
-                        //          _serialController.SendServoCommand("1" + (_leftProjectionAngleDegrees-10).ToString());
-                        //test = false;
                     }
                 }
                 if (_resultShoulderTurnRight > _resultShoulderTurnLeft)
                 {
                     if (Math.Abs(90 + _resultShoulderTurnRight) >= 120 && Math.Abs(90 + _resultShoulderTurnRight) <= 140)
                     {
-                        //  _serialController.SendServoCommand("2" + (Math.Abs(90 + _resultShoulderTurnRight).ToString()));
-                        //          _serialController.SendServoCommand("1" + (_leftProjectionAngleDegrees - 10).ToString());
-                        //test = false;
                     }
                 }
-                // }
                 else
                 {
-
-                   // _serialController.SendServoCommand("290");
-                    //    _serialController.SendServoCommand("1" + (_leftProjectionAngleDegrees-5).ToString());
-                    //   test = false;
                 }
-                // }
                 TB_temp1.Text = (Math.Abs(90 + _resultShoulderTurnRight)).ToString();
                 TB_temp2.Text = (Math.Abs(90 - _resultShoulderTurnLeft)).ToString();
             }
         }
-
-        //#############################################################################################################################//
         /// <summary>
         /// Receive signal from the client app for commands
         /// </summary>
