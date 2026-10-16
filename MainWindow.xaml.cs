@@ -42,7 +42,7 @@ namespace Parkinson.Detection
         public FogDetector fogDetector;
         public UdpBroadcastSettingsWindow udpBroadcast;
 
-        SerialPortSettingsWindow comset = new SerialPortSettingsWindow();
+        private readonly SerialPortSettingsWindow _serialPortSettingsWindow = new SerialPortSettingsWindow();
 
 
         #region KinectStuff
@@ -73,7 +73,7 @@ namespace Parkinson.Detection
 
 
             _kinectReader = new KinectReader(this);
-            _kinectReader.entryPoint();
+            _kinectReader.Start();
        
         }
         /// <summary>
