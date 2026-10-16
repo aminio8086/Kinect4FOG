@@ -4,23 +4,26 @@
 // Associated publication: https://doi.org/10.1080/17483107.2018.1467975
 //
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO.Ports;
-using System.Threading;
-
 namespace Parkinson.Detection
 {
     public class SerialController
     {
        
         private readonly SerialPort _serialPort = new SerialPort("COM4", 9600);
-      //  public SerialPort port = 
-        public void ConfigurePort(string portName)
+public void ConfigurePort(string portName)
         {
-            
+            if (string.IsNullOrWhiteSpace(portName))
+            {
+                throw new ArgumentException("A serial port name is required.", nameof(portName));
+            }
+
+            if (_serialPort.IsOpen)
+            {
+                throw new InvalidOperationException("The serial port cannot be changed while it is open.");
+            }
+
+            _serialPort.PortName = portName;
         }
 
         public void SendServoCommand(string command)
@@ -34,12 +37,9 @@ namespace Parkinson.Detection
 
             if (_serialPort.IsOpen)
             {
-
-           //     _serialPort.Open();
-                _serialPort.WriteLine(command);
+_serialPort.WriteLine(command);
 
             }
-       //    _serialPort.Close();
-        }
+}
     }
 }

@@ -29,8 +29,6 @@ namespace Parkinson.Detection
             _mainWindow = inWindow;
 
         }
-
-        //private Point point;
         /// <summary>
         /// Reader for color frames
         /// </summary>
@@ -139,8 +137,6 @@ namespace Parkinson.Detection
         /// <summary>
         /// List of colors for each body tracked
         /// </summary>
-        //private List<Pen> bodyColors;
-
         /// <summary>
         /// Current status text to display
         /// </summary>
@@ -189,10 +185,7 @@ namespace Parkinson.Detection
             {
 
                 if (_mainWindow.udpBroadcast.IsConfigured==true)
-                {
-
-                        //   byte[] buffer = Encoding.ASCII.GetBytes("hi");
-                        //byte[] buffer = (byte[])converter.ConvertTo(imageSource, typeof(byte[]));
+                {
 
                         if (_bitmapData != null)
                         {
@@ -279,8 +272,7 @@ namespace Parkinson.Detection
             this.bones = new List<Tuple<JointType, JointType>>();
 
 
-            // set IsAvailableChanged event notifier
-            //   this.kinectSensor.IsAvailableChanged += this.Sensor_IsAvailableChanged;
+            // set IsAvailableChanged event notifier
 
             // open the sensor
             this.kinectSensor.Open();
@@ -296,8 +288,6 @@ namespace Parkinson.Detection
             this.imageSource = new DrawingImage(this.drawingGroup);
 
             // use the window object as the view model in this simple example
-            // this.DataContext = this;
-
             _mainWindow.Image.Source = imageSource;
 
             if (bodyFrameReader != null)
@@ -330,7 +320,7 @@ namespace Parkinson.Detection
                 }
             }
         }
-private void kinectReader_Closing(object sender, RoutedEventArgs e)
+private void CloseSensorResources(object sender, RoutedEventArgs e)
         {
 
 
@@ -393,9 +383,7 @@ private void kinectReader_Closing(object sender, RoutedEventArgs e)
                         var height = tbBitmap.PixelHeight;
                         var stride = width * ((tbBitmap.Format.BitsPerPixel + 7) / 8);
 
-                        _bitmapData = new byte[height * stride];
-
-                      //  tbBitmap.CopyPixels(bitmapData, stride, 0);
+                        _bitmapData = new byte[height * stride];
 
                         var stream = new MemoryStream();
                         var encoder = new JpegBitmapEncoder();
@@ -468,16 +456,12 @@ private void kinectReader_Closing(object sender, RoutedEventArgs e)
                         ib.ImageSource = this.colorBitmap;
                         // Draw a transparent background to set the render size
                         dc.DrawRectangle(ib, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
-                    }
-
-                    // int penIndex = 0;
+                    }
                     _mainWindow.canvas.Children.Clear();
 
 
                     foreach (Body body in this.bodies)
-                    {
-
-                        // Pen drawPen = this.bodyColors[penIndex++];
+                    {
 
                         if (body.IsTracked)
                         {
@@ -498,7 +482,7 @@ private void kinectReader_Closing(object sender, RoutedEventArgs e)
                                     //For real-time head height plot
                                     _mainWindow.fogDetector.headJoint = (joints[JointType.Head]);
 
-                                    //For angel detection
+                                    // Joints used for knee-angle detection
                                     _mainWindow.fogDetector.spineMidJoint = (joints[JointType.SpineMid]);
                                     _mainWindow.fogDetector.spineBaseJoint = (joints[JointType.SpineBase]);
                                     _mainWindow.fogDetector.kneeLeftJoint = (joints[JointType.KneeLeft]);
@@ -508,22 +492,18 @@ private void kinectReader_Closing(object sender, RoutedEventArgs e)
                                     _mainWindow.fogDetector.hipRightJoint = (joints[JointType.HipRight]);
                                     _mainWindow.fogDetector.ankleRightJoint = (joints[JointType.AnkleRight]);
 
-                                    //For body orientation detetction
+                                    // Joints used for body-orientation detection
                                     _mainWindow.fogDetector.shoulderRightJoint = (joints[JointType.HipRight]);
                                     _mainWindow.fogDetector.shoulderLeftJoint = (joints[JointType.HipLeft]);
                                 }
 
                                 //3D space point
-                                CameraSpacePoint jointPosition = joints[jointType].Position;
-                                //CameraSpacePoint LeftFoot_jointPosition = joints[JointType.FootLeft].Position;
-                                //CameraSpacePoint RightFoot_jointPosition = joints[JointType.FootRight].Position;
+                                CameraSpacePoint jointPosition = joints[jointType].Position;
 
                                 // 2D space point
                                 Point point = new Point();
 
-                                ColorSpacePoint colorPoint = kinectSensor.CoordinateMapper.MapCameraPointToColorSpace(jointPosition);
-                                //DepthSpacePoint LeftFoot_colorPoint = kinectSensor.CoordinateMapper.MapCameraPointToDepthSpace(LeftFoot_jointPosition);
-                                //ColorSpacePoint RightFoot_colorPoint = kinectSensor.CoordinateMapper.MapCameraPointToColorSpace(RightFoot_jointPosition);
+                                ColorSpacePoint colorPoint = kinectSensor.CoordinateMapper.MapCameraPointToColorSpace(jointPosition);
 
                                 point.X = float.IsInfinity(colorPoint.X) ? 0 : colorPoint.X;
                                 point.Y = float.IsInfinity(colorPoint.Y) ? 0 : colorPoint.Y;

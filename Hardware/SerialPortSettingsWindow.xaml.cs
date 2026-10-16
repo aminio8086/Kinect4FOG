@@ -15,7 +15,7 @@ namespace Parkinson.Detection
     public partial class SerialPortSettingsWindow : Window
     {
 
-        private SerialController st=new SerialController();
+        private readonly SerialController _serialController = new SerialController();
 
       
 
@@ -28,12 +28,9 @@ namespace Parkinson.Detection
         {
             string[] ports = System.IO.Ports.SerialPort.GetPortNames();
 
-
-
-            // Display each port name to the console. 
+            List_com.Items.Clear();
             foreach (string port in ports)
             {
-                List_com.Items.Clear();
                 List_com.Items.Add(port);
             }
 
@@ -43,7 +40,10 @@ namespace Parkinson.Detection
         private void B_save_Click(object sender, RoutedEventArgs e)
         {
 
-            st.savePort(List_com.SelectedItem.ToString());
+            if (List_com.SelectedItem != null)
+            {
+                _serialController.ConfigurePort(List_com.SelectedItem.ToString());
+            }
             
 
         }
