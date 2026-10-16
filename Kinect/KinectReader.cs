@@ -1,5 +1,6 @@
 // Kinect4FOG research implementation and modifications
-// Copyright (c) Amin Amini. All rights reserved.
+// Copyright (c) Amin Amini.
+// SPDX-License-Identifier: Apache-2.0
 // Author: Amin Amini
 // Associated publication: https://doi.org/10.1080/17483107.2018.1467975
 //
