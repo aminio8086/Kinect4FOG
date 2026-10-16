@@ -43,7 +43,6 @@ namespace Parkinson.Detection
 
         //For receiving UDP commands from client
         private Thread _udpReceiveThread;
-        private ThreadStart _udpReceiveThreadStart;
         private const int UdpCommandPort = 8089;
         private UdpClient _udpListener = new UdpClient(UdpCommandPort);
         private IPEndPoint _udpIP = new IPEndPoint(IPAddress.Any, UdpCommandPort);
@@ -160,8 +159,8 @@ namespace Parkinson.Detection
                 DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".txt");
             _labelHeadHeight = new Label[12];
 
-            _udpReceiveThreadStart = new ThreadStart(ReceiveUdpCommands);
-            _udpReceiveThread = new Thread(_udpReceiveThreadStart) { IsBackground = true };
+            _udpReceiveThread = new Thread(ReceiveUdpCommands) { IsBackground = true };
+            _udpReceiveThread.Name = "Kinect4FOG UDP Command Receiver";
             _udpReceiveThread.Start();
 
             HorizontalMotorRotation.Interval = TimeSpan.FromMilliseconds(150);
@@ -795,23 +794,26 @@ namespace Parkinson.Detection
         /// </summary>
         private void ReceiveUdpCommands()
         {
-            while (_udpListener.Receive(ref _udpIP) != null)
+            while (true)
             {
-                this.Dispatcher.Invoke((Action)(() =>
+                try
                 {
-                    _udpReceiveBytes = _udpListener.Receive(ref _udpIP);
+                    IPEndPoint remoteEndpoint = _udpIP;
+                    _udpReceiveBytes = _udpListener.Receive(ref remoteEndpoint);
+                    string command = System.Text.Encoding.ASCII.GetString(_udpReceiveBytes);
 
-                    char[] chars = new char[_udpReceiveBytes.Length / sizeof(char)];
-                    System.Buffer.BlockCopy(_udpReceiveBytes, 0, chars, 0, _udpReceiveBytes.Length);
-                    string str = new string(chars);
-
-                    TB_udp.Text = str;
-
-                }));
-                Thread.Sleep(1);
-                if (_udpListener.Receive(ref _udpIP) == null)
+                    Dispatcher.BeginInvoke((Action)(() =>
+                    {
+                        TB_udp.Text = command;
+                    }));
+                }
+                catch (ObjectDisposedException)
                 {
-                    _udpReceiveThread.Abort();
+                    return;
+                }
+                catch (SocketException)
+                {
+                    return;
                 }
             }
         }

@@ -15,7 +15,6 @@ using Microsoft.Kinect;
 using System.Windows.Controls;
 using System.Net.Sockets;
 using System.Net;
-using System.Threading;
 using System.Text;
 using System.IO;
 
@@ -155,33 +154,9 @@ namespace Parkinson.Detection
 
         //Image to be sent to a UDP server
         private byte[] _bitmapData;
-        
-        //Thread for SendImage() function
-        public Thread testThread;
-        private ThreadStart testThreadStart;
-
-        //UDP socket for SendImage()
-        public IPAddress broadcast;
-        public IPEndPoint ep;
-
-        //Downsizing RGB feed for UDP
+//Downsizing RGB feed for UDP
         private TransformedBitmap tbBitmap;
-
-
-
-
-        //Data to be sent for SendInfo()
-        private byte[] _infoData= new byte [1000];
-
-        //Thread for SendInfo() function
-        public Thread testThread2;
-        private ThreadStart testThreadStart2;
-
-
-        
-
-
-        public void SendImage()
+private void SendImage()
         {
 
                 if (_mainWindow.broadcaster == true)
@@ -195,22 +170,18 @@ namespace Parkinson.Detection
 
                         if (_bitmapData != null)
                         {
-                            Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-                            IPAddress broadcast = _mainWindow.udpBroadcast.EndPoint.Address;
-                            IPEndPoint ep = _mainWindow.udpBroadcast.EndPoint;
-                            s.SendTo(_bitmapData, ep);
+                            using (UdpClient client = new UdpClient())
+                            {
+                                client.Send(_bitmapData, _bitmapData.Length, _mainWindow.udpBroadcast.EndPoint);
+                            }
                         } 
                     }
-                    
-                
-                Thread.Sleep(1);
-            } 
+} 
         }
       
 
 
-        private void SendInfo()
+        private void SendMonitoringInfo()
         {
 
             if (_mainWindow.fogDetectorBool == true)
@@ -218,34 +189,18 @@ namespace Parkinson.Detection
 
               
                 byte[] buffer = Encoding.ASCII.GetBytes(((Math.Abs(_mainWindow.fogDetector.headJoint.Position.Y))*100).ToString());
-
-                Socket s2 = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-                IPAddress broadcast3 = IPAddress.Parse("127.0.0.1");
-                IPEndPoint ep3 = new IPEndPoint(broadcast3, 8082);
-             
-               
-                s2.SendTo(buffer, ep3);
+                using (UdpClient client = new UdpClient())
+                {
+                    IPEndPoint monitoringEndpoint = new IPEndPoint(IPAddress.Loopback, 8082);
+                    client.Send(buffer, buffer.Length, monitoringEndpoint);
+                }
             }
-
-            Thread.Sleep(1);
-           
-        }
+}
 
 
         public void Start()
         {
-
-          testThreadStart = new ThreadStart(SendImage);
-          testThread = new Thread(testThreadStart) { IsBackground = true };
-          testThread.Start();
-
-            testThreadStart2 = new ThreadStart(SendInfo);
-            testThread2 = new Thread(testThreadStart2) { IsBackground = true };
-            testThread2.Start();
-
-
-            // one sensor is currently supported
+// one sensor is currently supported
             this.kinectSensor = KinectSensor.GetDefault();
 
             // open the reader for the color frames
@@ -569,7 +524,7 @@ namespace Parkinson.Detection
 
 
                                 SendImage();
-                                 SendInfo();
+                                 SendMonitoringInfo();
 
 
 
