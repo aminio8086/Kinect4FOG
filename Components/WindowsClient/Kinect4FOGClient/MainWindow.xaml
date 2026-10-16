@@ -1,0 +1,73 @@
+<Window x:Class="Kinect4FOG.Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Kinect4FOG Monitoring Client"
+        Height="420"
+        Width="700"
+        MinHeight="360"
+        MinWidth="600"
+        Loaded="MainWindow_Loaded"
+        Closing="MainWindow_Closing">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Margin="0,0,0,10"
+                   FontSize="18"
+                   FontWeight="SemiBold"
+                   Text="Kinect4FOG Remote Monitoring"/>
+
+        <Border Grid.Row="1"
+                BorderBrush="#888"
+                BorderThickness="1"
+                Background="#111"
+                Padding="4">
+            <Image x:Name="MonitoringImage"
+                   Stretch="Uniform"/>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,12,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       VerticalAlignment="Center"
+                       Margin="0,0,6,0"
+                       Text="Target IP:"/>
+            <TextBox x:Name="TargetAddressTextBox"
+                     Grid.Column="1"
+                     Text="127.0.0.1"
+                     Margin="0,0,12,0"/>
+
+            <TextBlock Grid.Column="2"
+                       VerticalAlignment="Center"
+                       Margin="0,0,6,0"
+                       Text="Command:"/>
+            <TextBox x:Name="CommandTextBox"
+                     Grid.Column="3"
+                     Text="11"
+                     Margin="0,0,12,0"/>
+
+            <Button x:Name="SendCommandButton"
+                    Grid.Column="4"
+                    Padding="12,3"
+                    Content="Send"
+                    Click="SendCommandButton_Click"/>
+        </Grid>
+
+        <TextBlock x:Name="StatusText"
+                   Grid.Row="3"
+                   Foreground="#555"
+                   Text="Starting UDP receiver..."/>
+    </Grid>
+</Window>
