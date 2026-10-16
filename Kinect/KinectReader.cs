@@ -38,7 +38,7 @@ namespace Parkinson.Detection
         /// Bitmap to display
         /// </summary>
         private WriteableBitmap colorBitmap = null;
-       
+
         /// <summary>
         /// Radius of drawn hand circles
         /// </summary>
@@ -81,12 +81,12 @@ namespace Parkinson.Detection
 
         /// <summary>
         /// Brush used for drawing joints that are currently inferred
-        /// </summary>        
+        /// </summary>
         private readonly Brush inferredJointBrush = Brushes.Yellow;
 
         /// <summary>
         /// Pen used for drawing bones that are currently inferred
-        /// </summary>        
+        /// </summary>
         private readonly Pen inferredBonePen = new Pen(Brushes.Gray, 1);
 
         /// <summary>
@@ -146,8 +146,6 @@ namespace Parkinson.Detection
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
-       
-
         //Image to be sent to a UDP server
         private byte[] _bitmapData;
 //Downsizing RGB feed for UDP
@@ -170,12 +168,10 @@ private void SendImage()
                             {
                                 client.Send(_bitmapData, _bitmapData.Length, _mainWindow.udpBroadcast.EndPoint);
                             }
-                        } 
+                        }
                     }
-} 
+}
         }
-      
-
 
         private void SendMonitoringInfo()
         {
@@ -183,7 +179,6 @@ private void SendImage()
             if (_mainWindow.fogDetectorBool == true)
             {
 
-              
                 byte[] buffer = Encoding.ASCII.GetBytes(((Math.Abs(_mainWindow.fogDetector.headJoint.Position.Y))*100).ToString());
                 using (UdpClient client = new UdpClient())
                 {
@@ -192,7 +187,6 @@ private void SendImage()
                 }
             }
 }
-
 
         public void Start()
         {
@@ -211,7 +205,6 @@ private void SendImage()
             // create the bitmap to display
             this.colorBitmap = new WriteableBitmap(colorFrameDescription.Width, colorFrameDescription.Height, 96.0, 96.0, PixelFormats.Bgr32, null);
 
-
             // get the coordinate mapper
             this.coordinateMapper = this.kinectSensor.CoordinateMapper;
 
@@ -227,7 +220,6 @@ private void SendImage()
 
             // a bone defined as a line between two joints
             this.bones = new List<Tuple<JointType, JointType>>();
-
 
             // set IsAvailableChanged event notifier
             //   this.kinectSensor.IsAvailableChanged += this.Sensor_IsAvailableChanged;
@@ -279,17 +271,13 @@ private void SendImage()
             }
         }
 
-
         private void kinectReader_Loaded(object sender, RoutedEventArgs e)
         {
 
         }
 
-        
-
         private void kinectReader_Closing(object sender, RoutedEventArgs e)
         {
-
 
             if (colorFrameReader != null)
             {
@@ -311,7 +299,6 @@ private void SendImage()
                 kinectSensor = null;
             }
         }
-
 
         private void Reader_ColorFrameArrived(object sender, ColorFrameArrivedEventArgs e)
         {
@@ -339,12 +326,9 @@ private void SendImage()
 
                         colorBitmap.Unlock();
 
-
-
                         // Transforming bitmap to lower resolution.
                         ScaleTransform scale = new ScaleTransform((160.0 / colorBitmap.PixelWidth), (90.0 / colorBitmap.PixelHeight));
                         this.tbBitmap = new TransformedBitmap(colorBitmap, scale);
-
 
                         var width = tbBitmap.PixelWidth;
                         var height = tbBitmap.PixelHeight;
@@ -362,19 +346,13 @@ private void SendImage()
             }
         }
 
-
-
         private void Reader_FrameArrived(object sender, BodyFrameArrivedEventArgs e)
         {
 
-           
             bool dataReceived = false;
 
             using (BodyFrame bodyFrame = e.FrameReference.AcquireFrame())
             {
-
-            
-
 
                     if (bodyFrame != null)
                     {
@@ -382,7 +360,6 @@ private void SendImage()
                         {
                             this.bodies = new Body[bodyFrame.BodyCount];
                         }
-
 
                         // The first time GetAndRefreshBodyData is called, Kinect will allocate each Body in the array.
                         // As long as those body objects are not disposed and not set to null in the array,
@@ -400,24 +377,19 @@ private void SendImage()
 
                     }
 
-                
             }
             if (dataReceived)
             {
 
-
                 {
                     using (DrawingContext dc = this.drawingGroup.Open())
                     {
-
 
                         BitmapEncoder encoder = new PngBitmapEncoder();
                         // create frame from the writable bitmap and add to encoder
                         encoder.Frames.Add(BitmapFrame.Create(this.colorBitmap));
 
                         ImageBrush ib = new ImageBrush();
-
-
 
                         ib.ImageSource = this.colorBitmap;
                         // Draw a transparent background to set the render size
@@ -426,7 +398,6 @@ private void SendImage()
 
                     // int penIndex = 0;
                     _mainWindow.canvas.Children.Clear();
-
 
                     foreach (Body body in this.bodies)
                     {
@@ -440,7 +411,6 @@ private void SendImage()
 
                             // convert the joint points to depth (display) space
                             Dictionary<JointType, Point> jointPoints = new Dictionary<JointType, Point>();
-
 
                             foreach (JointType jointType in joints.Keys)
                             {
@@ -497,7 +467,6 @@ private void SendImage()
 
                                 _mainWindow.canvas.Children.Add(ellipse);
 
-
                             }
                             if (_mainWindow.fogDetector != null && _mainWindow.fogDetector.Visibility == Visibility.Visible)
                             {
@@ -508,45 +477,19 @@ private void SendImage()
                                 _mainWindow.fogDetector.WriteDataSample();
                                 _mainWindow.fogDetector.UpdateGaitInformation();
 
-
-
                             }
-
-
 
                                 SendImage();
                                  SendMonitoringInfo();
-
-
-
 
                         }
 
                     }
 
-
                 }
             }
 
-
-
-          
-
-
-
         }
-
-
-
-        public float coordinate(float joint)
-        {
-
-
-
-            return joint;
-        }
-
-
 
     }
 }

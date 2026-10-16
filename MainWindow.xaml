@@ -1,8 +1,8 @@
 ﻿<Window x:Class="Parkinson.Detection.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Kinect4FOG" 
-        Height="479.602" Width="772.155" 
+        Title="Kinect4FOG"
+        Height="479.602" Width="772.155"
         Loaded="MainWindow_Loaded"
         Closing="MainWindow_Closing" ResizeMode="NoResize">
     <Window.Resources>

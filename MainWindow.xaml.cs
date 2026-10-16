@@ -17,11 +17,6 @@ namespace Parkinson.Detection
     using System.ComponentModel;
     using System.Windows;
 
-
-
-
-
-
     #endregion
 
     /// <summary>
@@ -29,10 +24,6 @@ namespace Parkinson.Detection
     /// </summary>
     public partial class MainWindow : Window
     {
-
-
-
-
 
         public bool fogDetectorBool = false;
         public bool broadcaster = false;
@@ -45,12 +36,9 @@ namespace Parkinson.Detection
         private readonly SerialController _serialController;
         private readonly SerialPortSettingsWindow _serialPortSettingsWindow;
 
-
         #region KinectStuff
 
-
         #endregion
-
 
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
@@ -71,10 +59,9 @@ namespace Parkinson.Detection
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
 
-
             _kinectReader = new KinectReader(this);
             _kinectReader.Start();
-       
+
         }
         /// <summary>
         /// Execute shutdown tasks
@@ -105,13 +92,12 @@ namespace Parkinson.Detection
             }
 
             Application.Current.Shutdown();
-        
-        }
 
+        }
 
         private void Menu_COMSetting_Click(object sender, RoutedEventArgs e)
         {
-           
+
             _serialPortSettingsWindow.Show();
         }
 

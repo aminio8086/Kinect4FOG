@@ -7,7 +7,6 @@
 
 using System.Windows;
 
-
 namespace Parkinson.Detection
 {
     /// <summary>
@@ -17,8 +16,6 @@ namespace Parkinson.Detection
     {
 
         private readonly SerialController _serialController;
-
-      
 
         public SerialPortSettingsWindow()
         {
@@ -41,7 +38,6 @@ namespace Parkinson.Detection
                 List_com.Items.Add(port);
             }
 
-
         }
 
         private void B_save_Click(object sender, RoutedEventArgs e)
@@ -51,10 +47,7 @@ namespace Parkinson.Detection
             {
                 _serialController.ConfigurePort(List_com.SelectedItem.ToString());
             }
-            
 
         }
     }
 }
-    
-

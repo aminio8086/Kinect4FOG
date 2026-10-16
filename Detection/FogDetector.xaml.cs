@@ -48,8 +48,6 @@ namespace Parkinson.Detection
         private IPEndPoint _udpIP = new IPEndPoint(IPAddress.Any, UdpCommandPort);
         private byte[] _udpReceiveBytes;
 
-
-
         // Research data is written to a per-user Documents folder.
         private readonly string _recordingDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
@@ -81,14 +79,12 @@ namespace Parkinson.Detection
         public Joint kneeRightJoint;
         public Joint spineBaseJoint;
 
-
         // Body orientation detection
         public Joint shoulderRightJoint;
         public Joint shoulderLeftJoint;
 
         private double _resultShoulderTurnRight = 0;
         private double _resultShoulderTurnLeft = 0;
-
 
         //Knee angle detection
         public Joint hipLeftJoint;
@@ -99,10 +95,8 @@ namespace Parkinson.Detection
         private double _angleKneeLeft = 0;
         private double _angleKneeRight = 0;
 
-
         //FloorPlane Detection
         public float A_floor, B_floor, C_floor, D_floor = 0;
-
 
         //To apply delay for the horizontal motor
         private dynamic HorizontalMotorRotation = new System.Windows.Threading.DispatcherTimer();
@@ -120,7 +114,6 @@ namespace Parkinson.Detection
         private Stopwatch stopwatchRight = new Stopwatch();
 
         private Stopwatch fallover = new Stopwatch();
-
 
         private bool fogOccurred = false;
         private void FogDetector_Closing(object sender, CancelEventArgs e)
@@ -171,14 +164,12 @@ namespace Parkinson.Detection
             grapherTimer.Start();
         }
 
-
         public void UpdateHeadHeightAndFallState()
         {
 
             distanceHeadCurrent = (((headJoint.Position.X * A_floor) + (headJoint.Position.Y * B_floor) + (headJoint.Position.Z * C_floor) + D_floor) / Math.Sqrt((A_floor * A_floor) + (B_floor * B_floor) + (C_floor * C_floor)));
 
             distanceHeadCurrentAbs = Math.Abs(distanceHeadCurrent);
-
 
             decimal HeaddecimalValue = Math.Round((decimal)distanceHeadCurrent, 3);
 
@@ -210,8 +201,6 @@ namespace Parkinson.Detection
                     FallCheckbox.IsChecked = false;
                 }
 
-
-
             }
 
         }
@@ -226,7 +215,6 @@ namespace Parkinson.Detection
         {
 
             int labelLocation = 675;
-
 
             if (_labelsInitialised == false)
             {
@@ -256,7 +244,6 @@ namespace Parkinson.Detection
 
                 }
 
-
                 _labelSecondCounter = 0;
                 _labelXAxisIncrement = 0;
 
@@ -276,7 +263,6 @@ namespace Parkinson.Detection
             grapher.Children.Add(_headHeightGraphLine);
 
             _labelXAxisIncrement++;
-
 
         }
         //Create Excel sheet with the given information
@@ -302,7 +288,6 @@ namespace Parkinson.Detection
         public void UpdateGaitInformation()
         {
 
-
             TB_sensorHeight.Text = D_floor.ToString();                    //Show the Kinect height to the ground
 
             TB_leftAngle.Text = _angleKneeLeft.ToString();                //Show the left foot distance to the ground
@@ -317,20 +302,13 @@ namespace Parkinson.Detection
             TB_leftStride.Text = _leftFootStrideDuration.ToString();
             TB_rightStride.Text = _rightFootStrideDuration.ToString();
 
-
             UpdateHeadHeightPlot();
-
 
             TB_udp.Text = distanceHeadCurrentAbs.ToString();
 }
 
-
-
-
-
         public void WriteDataSample()
         {
-
 
             if (_recordTextData == true)
             {
@@ -387,22 +365,13 @@ namespace Parkinson.Detection
                     + (Math.Abs(90 + _resultShoulderTurnRight)).ToString() + " "
                     + (Math.Abs(90 - _resultShoulderTurnLeft)).ToString() + " "
 
-
-
-
            );
                     _textRowNumber++;
                 }
 
             }
 
-
-
         }
-
-
-
-
 
         public void UpdateBodyOrientation()
         {
@@ -416,7 +385,7 @@ namespace Parkinson.Detection
                 _resultShoulderTurnRight = Math.Asin(_resultShoulderTurnRight);
                 _resultShoulderTurnRight *= 1000;
 
-                _resultShoulderTurnRight = Math.Ceiling(_resultShoulderTurnRight);
+                _resultShoulderTurnRight = Math.Ceiling(_resultShoulderTurnRight);
 
                 }
 
@@ -427,8 +396,8 @@ namespace Parkinson.Detection
                 _resultShoulderTurnLeft = Math.Asin(_resultShoulderTurnLeft);
                 _resultShoulderTurnLeft *= 1000;
 
-                _resultShoulderTurnLeft = Math.Ceiling(_resultShoulderTurnLeft);
-                
+                _resultShoulderTurnLeft = Math.Ceiling(_resultShoulderTurnLeft);
+
                 }
         }
         /// <summary>
@@ -439,10 +408,6 @@ namespace Parkinson.Detection
         {
 
             // Knee-angle detection is used; the abandoned foot-to-floor experiment has been removed.
-
-
-
-
 
             Vector3D hipLeftVector = new Vector3D(hipLeftJoint.Position.X, hipLeftJoint.Position.Y, hipLeftJoint.Position.Z);
             Vector3D kneeLeftVector = new Vector3D(kneeLeftJoint.Position.X, kneeLeftJoint.Position.Y, kneeLeftJoint.Position.Z);
@@ -466,7 +431,6 @@ namespace Parkinson.Detection
 
                     stopwatchLeft.Stop();
 
-
                     _leftFootStrideDuration = stopwatchLeft.Elapsed.Milliseconds;
                 if ((_leftFootStrideDuration > MinimumStrideDurationMilliseconds))
                 {
@@ -474,11 +438,10 @@ namespace Parkinson.Detection
                     _leftFootstepcountUp++;
 
                 }
-               
-                stopwatchLeft.Reset();
-                    
-                }
 
+                stopwatchLeft.Reset();
+
+                }
 
             //Determine the number of left foot steps in total and given time
             if ((_angleKneeRight <= KneeAngleThresholdDegrees))
@@ -489,7 +452,6 @@ namespace Parkinson.Detection
             else {
 
                 stopwatchRight.Stop();
-
 
                 _rightFootStrideDuration = stopwatchRight.Elapsed.Milliseconds;
 
@@ -527,18 +489,15 @@ namespace Parkinson.Detection
             }
         }
 
-
-
-
         private void resetFOGIndicator_Tick(System.Object sender, EventArgs e)
         {
             if (_lableFOG.Visibility == System.Windows.Visibility.Visible)
             {
                 _lableFOG.Visibility = System.Windows.Visibility.Hidden;
                 resetFOGIndicator.Stop();
-               
+
             }
-            
+
         }
 
         /// <summary>
@@ -546,8 +505,7 @@ namespace Parkinson.Detection
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        /// 
-
+        ///
 
         private void FOGHappened_Tick(System.Object sender, EventArgs e)
         {
@@ -649,9 +607,8 @@ namespace Parkinson.Detection
                         TB_laser.Text = _rightProjectionAngleDegrees.ToString();
                     }
 
+                }
 
-
-                }
         }
         /// <summary>
         /// Send signal in intervals to the micro-controller for the horizontal laser movement

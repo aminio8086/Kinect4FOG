@@ -10,7 +10,7 @@ namespace Parkinson.Detection
 {
     public class SerialController
     {
-       
+
         private readonly SerialPort _serialPort = new SerialPort("COM4", 9600);
 public void ConfigurePort(string portName)
         {
