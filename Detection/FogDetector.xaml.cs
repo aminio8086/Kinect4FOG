@@ -25,8 +25,8 @@ namespace Parkinson.Detection
     /// </summary>
     public partial class FogDetector : Window
     {
-        double sub = 0;
-        double sub2 = 0;
+        double _leftProjectionAngleDegrees = 0;
+        double _rightProjectionAngleDegrees = 0;
 
         private readonly SerialController _serialController = new SerialController();
 
@@ -84,258 +84,7 @@ namespace Parkinson.Detection
         private int _leftFootstepcountTotal = 0;
         private int _rightFootstepcountTotal = 0;
 
-        //DISABLEED FOR LENSE DISTORTION ISSUE
-        //private float _distanceLeftFoot = 0;
-        //private float _distanceRightFoot = 0;
-
-        private int _leftFootStrideDuration = 0;
-        private int _rightFootStrideDuration = 0;
-
-        private const double KneeAngleThresholdDegrees = 170.0;
-        private const int MaximumStrideDurationMilliseconds = 900;
-        private const int MinimumStrideDurationMilliseconds = 200;
-
-        //Spine angel detection
-        public Joint spineMidJoint;
-        public Joint kneeLeftJoint;
-        public Joint kneeRightJoint;
-        public Joint spineBaseJoint;
-
-
-        // Body orientation detection
-        public Joint shoulderRightJoint;
-        public Joint shoulderLeftJoint;
-
-        private double _resultShoulderTurnRight = 0;
-        private double _resultShoulderTurnLeft = 0;
-
-
-        //Knee angel detection
-        public Joint hipLeftJoint;
-        public Joint hipRightJoint;
-        public Joint ankleLeftJoint;
-        public Joint ankleRightJoint;
-
-        private double _angleKneeLeft = 0;
-        private double _angleKneeRight = 0;
-
-
-        //FloorPlane Detection
-        public float A_floor, B_floor, C_floor, D_floor = 0;
-
-
-        //To apply delay for the horizontal motor
-        private dynamic HorizontalMotorRotation = new System.Windows.Threading.DispatcherTimer();
-
-        private dynamic FOGChecker = new System.Windows.Threading.DispatcherTimer();
-        private dynamic FOGHappened = new System.Windows.Threading.DispatcherTimer();
-        private dynamic resetFOGIndicator = new System.Windows.Threading.DispatcherTimer();
-        private dynamic SystemTimer = new System.Windows.Threading.DispatcherTimer();
-        private dynamic LeftStrideTimer = new System.Windows.Threading.DispatcherTimer();
-        private dynamic RightStrideTimer = new System.Windows.Threading.DispatcherTimer();
-
-        private dynamic grapherTimer = new System.Windows.Threading.DispatcherTimer();
-
-        private Stopwatch stopwatchLeft = new Stopwatch();
-        private Stopwatch stopwatchRight = new Stopwatch();
-
-        private Stopwatch fallover = new Stopwatch();
-
-
-        private bool fogOccurred = false;
-
-
-
-        //#############################################################################################################################//
-
-        private void FOGDetector_Closing(object sender, CancelEventArgs e)
-        {
-            e.Cancel = true;
-            Hide();
-        }
-
-        //#############################################################################################################################//
-
-        public FogDetector()
-        {
-
-            InitializeComponent();
-            _labelHeadHeight = new Label[12];
-
-            //To remove bug at the beginning of plot drawing
-            _oldHeadHeight = headJoint.Position.Y * 100;
-
-            //For recieving udp
-            _udpReceiveThreadStart = new ThreadStart(ReceiveUdpCommands);
-            _udpReceiveThread = new Thread(_udpReceiveThreadStart) { IsBackground = true };
-            _udpReceiveThread.Start();
-
-
-
-
-            HorizontalMotorRotation.Interval = TimeSpan.FromMilliseconds(150);
-            HorizontalMotorRotation.Tick += new EventHandler(HorizontalMotorRotation_Tick);
-
-            HorizontalMotorRotation.Start();
-
-
-            //Timer for fall detection
-            FOGChecker.Interval = TimeSpan.FromMilliseconds(2000);
-            FOGChecker.Tick += new EventHandler(FOGChecker_Tick);
-            FOGChecker.Start();
-
-            FOGHappened.Interval = TimeSpan.FromMilliseconds(1800);
-            FOGHappened.Tick += new EventHandler(FOGHappened_Tick);
-
-
-            resetFOGIndicator.Interval = TimeSpan.FromSeconds(2);
-            resetFOGIndicator.Tick += new EventHandler(resetFOGIndicator_Tick);
-
-            grapherTimer.Interval = TimeSpan.FromSeconds(1);
-            grapherTimer.Tick += new EventHandler(grapherTimer_Tick);
-            grapherTimer.Start();
-
-
-
-        }
-
-
-        public void headHeightCalculator()
-        {
-
-            distanceHeadCurrent = (((headJoint.Position.X * A_floor) + (headJoint.Position.Y * B_floor) + (headJoint.Position.Z * C_floor) + D_floor) / Math.Sqrt((A_floor * A_floor) + (B_floor * B_floor) + (C_floor * C_floor)));
-
-            distanceHeadCurrentAbs = Math.Abs(distanceHeadCurrent);
-
-
-            decimal HeaddecimalValue = Math.Round((decimal)distanceHeadCurrent, 3);
-
-            distanceHeadCurrent = (float)HeaddecimalValue;
-
-            if (FallCheckbox.IsChecked == true)
-            {
-                if (distanceHeadCurrent <= 0.3)
-                {
-                    fallover.Start();
-                    _imageStanding.Visibility = Visibility.Hidden;
-                    _imageFalling.Visibility = Visibility.Visible;
-
-                    if (fallAlertWindowShown == false)
-                    {
-                        FallAlertWindow skype = new FallAlertWindow();
-                        skype.Show();
-                        fallAlertWindowShown = true;
-                    }
-
-                }
-                if (fallover.IsRunning && fallover.ElapsedMilliseconds >= 1000 && distanceHeadCurrent >= 0.5)
-                {
-                    _imageStanding.Visibility = Visibility.Visible;
-                    _imageFalling.Visibility = Visibility.Hidden;
-                    fallover.Stop();
-                    fallover.Reset();
-                    fallAlertWindowShown = false;
-                    FallCheckbox.IsChecked = false;
-                }
-
-
-
-            }
-
-        }
-        private void grapherTimer_Tick(System.Object sender, EventArgs e)
-        {
-            _oldHeadHeight = headJoint.Position.Y * 100;
-            _lableSecondCounter++;
-
-        }
-
-        public void plotter()
-        {
-
-            int _lableLocation = 675;
-
-
-            if (_lableOneTimeGenerator == false)
-            {
-                for (int i = 0; i <= 11; i++)
-                {
-
-                    _labelHeadHeight[i] = new Label();
-                    _labelHeadHeight[i].Name = "_labelHeight" + i.ToString();
-                    _labelHeadHeight[i].Margin = new Thickness(_lableLocation, 262, 0, 0);
-
-                    _labelHeadHeight[i].Content = i.ToString();
-                    grid.Children.Add(_labelHeadHeight[i]);
-
-                    _lableLocation = _lableLocation + 30;
-                }
-                _lableOneTimeGenerator = true;
-            }
-            if (_lableSecondCounter >= 12)
-            {
-
-                for (int i = 0; i <= 11; i++)
-                {
-
-                    int _LableValue = Convert.ToInt32(_labelHeadHeight[i].Content);
-                    _LableValue += 12;
-                    _labelHeadHeight[i].Content = _LableValue.ToString();
-
-                }
-
-
-                _lableSecondCounter = 0;
-                _lableXaxisIncrement = 0;
-
-                grapher.Children.Clear();
-            }
-
-            System.Windows.Shapes.Line _headHeightGraphLine = new System.Windows.Shapes.Line();
-            _headHeightGraphLine.Stroke = System.Windows.Media.Brushes.Red;
-            _headHeightGraphLine.X1 = _lableXaxisIncrement - 1;
-            _headHeightGraphLine.X2 = _lableXaxisIncrement;
-            _headHeightGraphLine.Y1 = Math.Abs(headJoint.Position.Y * 100);
-            _headHeightGraphLine.Y2 = Math.Abs(headJoint.Position.Y * 100);
-            _headHeightGraphLine.HorizontalAlignment = HorizontalAlignment.Left;
-            _headHeightGraphLine.VerticalAlignment = VerticalAlignment.Center;
-            _headHeightGraphLine.StrokeThickness = 3;
-
-            grapher.Children.Add(_headHeightGraphLine);
-
-            _lableXaxisIncrement++;
-
-
-        }
-        //#############################################################################################################################//
-
-        //Create Excel sheet with the given information
-        private void OpenExcel_Click(object sender, RoutedEventArgs e)
-        {
-
-            switch (_rectxtdata)
-            {
-                case true:
-                    _rectxtdata = false;
-                    OpenExcel.Content = "Rec";
-                    break;
-                case false:
-                    _rectxtdata = true;
-                    OpenExcel.Content = "Pause";
-                    break;
-
-            }
-
-            /*
-            _excelworkbook = _excelInstance.Workbooks.Add(Excel.XlSheetType.xlWorksheet);
-            _excelWorksheet = (Excel.Worksheet)_excelInstance.ActiveSheet;
-            _excelInstance.Visible = true;
-            _excelWorksheet.Cells[1, 1] = "Frame Number";
-            _excelWorksheet.Cells[1, 2] = "distanceLeft";
-            _excelWorksheet.Cells[1, 3] = "distanceRight";
-            _excelWorksheet.Cells[1, 4] = "Left Stride";
-            _excelWorksheet.Cells[1, 5] = "Right Stride";
-            */
+            // Legacy foot-to-floor distance approach removed; knee-angle detection is used instead.
 
 
         }
@@ -402,7 +151,6 @@ namespace Parkinson.Detection
                     sw = new StreamWriter(path);
 
                 }
-                //  sw = File.CreateText(path);
 
                 if (_txtRowNum == 0)
                 {
@@ -444,8 +192,8 @@ namespace Parkinson.Detection
                     + leftFootJoint.Position.Y.ToString() + " "
                     + leftFootJoint.Position.Z.ToString() + " "
                     + "*" + " "
-                    + sub2.ToString() + " "
-                    + sub.ToString() + " "
+                    + _rightProjectionAngleDegrees.ToString() + " "
+                    + _leftProjectionAngleDegrees.ToString() + " "
                     + "*" + " "
                     + (Math.Abs(90 + _resultShoulderTurnRight)).ToString() + " "
                     + (Math.Abs(90 - _resultShoulderTurnLeft)).ToString() + " "
@@ -490,8 +238,8 @@ namespace Parkinson.Detection
                 _excelWorksheet.Cells[_excelCol, 11] = leftFootJoint.Position.Y.ToString();
                 _excelWorksheet.Cells[_excelCol, 12] = leftFootJoint.Position.Z.ToString();
                 _excelWorksheet.Cells[_excelCol, 13] = "*";
-                _excelWorksheet.Cells[_excelCol, 14] = sub2.ToString();
-                _excelWorksheet.Cells[_excelCol, 15] = sub.ToString();
+                _excelWorksheet.Cells[_excelCol, 14] = _rightProjectionAngleDegrees.ToString();
+                _excelWorksheet.Cells[_excelCol, 15] = _leftProjectionAngleDegrees.ToString();
                 _excelWorksheet.Cells[_excelCol, 16] = "*";
                 _excelWorksheet.Cells[_excelCol, 17] = (Math.Abs(90 + _resultShoulderTurnRight)).ToString();
                 _excelWorksheet.Cells[_excelCol, 18] = (Math.Abs(90 - _resultShoulderTurnLeft)).ToString();
@@ -512,7 +260,6 @@ namespace Parkinson.Detection
         /// </summary>
         public void BodyRotate()
         {
-          //  test = true;
             float leftShoulder = shoulderLeftJoint.Position.Z;
             float rightShoulder = shoulderRightJoint.Position.Z;
 
@@ -524,7 +271,6 @@ namespace Parkinson.Detection
                 _resultShoulderTurnRight *= 1000;
 
                 _resultShoulderTurnRight = Math.Ceiling(_resultShoulderTurnRight);
-            //    _resultShoulderTurnRight = Math.Round(_resultShoulderTurnRight / 10.0) * 10;
 
                 }
 
@@ -536,7 +282,6 @@ namespace Parkinson.Detection
                 _resultShoulderTurnLeft *= 1000;
 
                 _resultShoulderTurnLeft = Math.Ceiling(_resultShoulderTurnLeft);
-           //     _resultShoulderTurnLeft = Math.Round(_resultShoulderTurnLeft / 10.0) * 10;
                 
                 }
         }
@@ -549,27 +294,7 @@ namespace Parkinson.Detection
         public void DetectFreezingOfGait()
         {
 
-            //DISABLEED FOR LENSE DISTORTION ISSUE
-            //Determine the distance of the left foot to the ground
-            /*   double temp = Math.Sqrt((leftFoot.Position.X * leftFoot.Position.X) + (leftFoot.Position.Y * leftFoot.Position.Y) + (leftFoot.Position.Z * leftFoot.Position.Z));
-              float divisor = Convert.ToSingle(temp);
-              distanceLeftFoot = ((A * leftFoot.Position.X) + (B * leftFoot.Position.Y) + (C * leftFoot.Position.Z) + D);
-               decimal LeftdecimalValue = Math.Round((decimal)distanceLeftFoot, 3);
-               distanceLeftFoot = (float)LeftdecimalValue;
-
-               distanceLeftFoot = (leftFoot.Position.Z-0.03592f)/0.44f;
-
-               //  float tempD = ((leftFootPosZ * 100) / 4.285112f)/0.58f;
-               //  distanceLeftFoot = distanceLeftFoot * tempD;
-
-               distanceLeftFoot = (float)LeftdecimalValue;
-
-               //Determine the distance of the right foot to the ground
-
-               distanceRightFoot = ((A * rightFoot.Position.X) + (B * rightFoot.Position.Y) + (C * rightFoot.Position.Z) + D);
-               decimal RightdecimalValue = Math.Round((decimal)distanceRightFoot, 3);
-               distanceRightFoot = (float)RightdecimalValue;
-               */
+            // Legacy foot-to-floor distance approach removed; knee-angle detection is used instead.
 
 
 
@@ -579,7 +304,6 @@ namespace Parkinson.Detection
             _angleKneeLeft = AngleBetweenTwoVectors(kneeLeftVect - hipLeftVect, kneeLeftVect - AnkleLeftVect);
 
            // decimal AngleKneeLeftRound = Math.Round((decimal)_angleKneeLeft, 3);
-         //   _angleKneeLeft = (float)AngleKneeLeftRound;
 
 
             Vector3D hipRightVect = new Vector3D(hipRightJoint.Position.X, hipRightJoint.Position.Y, hipRightJoint.Position.Z);
@@ -588,14 +312,12 @@ namespace Parkinson.Detection
             _angleKneeRight = AngleBetweenTwoVectors(kneeRightVect - hipRightVect, kneeRightVect - AnkleRightVect);
 
          //   decimal AngleKneeRightRound = Math.Round((decimal)_angleKneeRight, 3);
-        //    _angleKneeRight = (float)AngleKneeRightRound;
 
             //#############################################################################################################################//
 
             //Check if FOG has happened
             if (_angleKneeLeft >= KneeAngleThresholdDegrees || _angleKneeRight >= KneeAngleThresholdDegrees)
             {
-                //   FOGHappened.Start();
             }
 
             //#############################################################################################################################//
@@ -755,8 +477,6 @@ namespace Parkinson.Detection
         /// </summary>
         public void UpdateVerticalLaserPosition()
         {
-         //   if (fogOccurred == true)
-         //   {
 
                 double a = 136d;
 
@@ -772,58 +492,55 @@ namespace Parkinson.Detection
                 Beta2 = Math.Acos(Beta2);
                 Beta2 *= (180f / Math.PI);
 
-                sub = Beta;
-                sub = Math.Ceiling(sub);
-                sub2 = Beta2;
-                sub2 = Math.Ceiling(sub2);
+                _leftProjectionAngleDegrees = Beta;
+                _leftProjectionAngleDegrees = Math.Ceiling(_leftProjectionAngleDegrees);
+                _rightProjectionAngleDegrees = Beta2;
+                _rightProjectionAngleDegrees = Math.Ceiling(_rightProjectionAngleDegrees);
 
                 if (SerialCheckbox.IsChecked == true)
                 {
-                    if (sub <= 24)
+                    if (_leftProjectionAngleDegrees <= 24)
                     {
 
-                        sub = 24;
+                        _leftProjectionAngleDegrees = 24;
                     }
 
-                    if (sub >= 80)
+                    if (_leftProjectionAngleDegrees >= 80)
                     {
 
-                        sub = 80;
+                        _leftProjectionAngleDegrees = 80;
                     }
 
-                    if (sub2 <= 24)
+                    if (_rightProjectionAngleDegrees <= 24)
                     {
 
-                        sub2 = 24;
+                        _rightProjectionAngleDegrees = 24;
                     }
 
-                    if (sub2 >= 80)
+                    if (_rightProjectionAngleDegrees >= 80)
                     {
 
-                        sub2 = 80;
+                        _rightProjectionAngleDegrees = 80;
                     }
 
-                    if (sub < sub2)
+                    if (_leftProjectionAngleDegrees < _rightProjectionAngleDegrees)
                     {
 
-                        _serialController.SendServoCommand(("1" + (sub-3)).ToString());
-                        TB_laser.Text = sub.ToString();
+                        _serialController.SendServoCommand(("1" + (_leftProjectionAngleDegrees-3)).ToString());
+                        TB_laser.Text = _leftProjectionAngleDegrees.ToString();
                     }
                     else
                     {
-                        _serialController.SendServoCommand(("1" + (sub2-3)).ToString());
-                        TB_laser.Text = sub2.ToString();
+                        _serialController.SendServoCommand(("1" + (_rightProjectionAngleDegrees-3)).ToString());
+                        TB_laser.Text = _rightProjectionAngleDegrees.ToString();
                     }
 
 
 
                 }
-          //  }else {
-
-          //      _serialController.SendServoCommand(("1" + (23)).ToString());
 
 
-         //   }
+
             
 
         
@@ -837,8 +554,6 @@ namespace Parkinson.Detection
         /// </summary>
         private void HorizontalMotorRotation_Tick(System.Object sender, EventArgs e)
         {
-            //  if (SerialCheckbox.IsChecked == true)
-            //  {
 
             if ((Math.Abs(_resultShoulderTurnLeft - _resultShoulderTurnRight) > 20) || (Math.Abs(_resultShoulderTurnRight - _resultShoulderTurnLeft) > 20))
             {
@@ -847,29 +562,18 @@ namespace Parkinson.Detection
                 {
                     if (Math.Abs(90 - _resultShoulderTurnLeft) >= 40 && Math.Abs(90 - _resultShoulderTurnLeft) <= 70)
                     {
-                        //    _serialController.SendServoCommand("2" + (Math.Abs(90 - _resultShoulderTurnLeft).ToString()));
-                        //          _serialController.SendServoCommand("1" + (sub-10).ToString());
-                        //test = false;
                     }
                 }
                 if (_resultShoulderTurnRight > _resultShoulderTurnLeft)
                 {
                     if (Math.Abs(90 + _resultShoulderTurnRight) >= 120 && Math.Abs(90 + _resultShoulderTurnRight) <= 140)
                     {
-                        //  _serialController.SendServoCommand("2" + (Math.Abs(90 + _resultShoulderTurnRight).ToString()));
-                        //          _serialController.SendServoCommand("1" + (sub - 10).ToString());
-                        //test = false;
                     }
                 }
-                // }
                 else
                 {
 
-                   // _serialController.SendServoCommand("290");
-                    //    _serialController.SendServoCommand("1" + (sub-5).ToString());
-                    //   test = false;
                 }
-                // }
                 TB_temp1.Text = (Math.Abs(90 + _resultShoulderTurnRight)).ToString();
                 TB_temp2.Text = (Math.Abs(90 - _resultShoulderTurnLeft)).ToString();
             }

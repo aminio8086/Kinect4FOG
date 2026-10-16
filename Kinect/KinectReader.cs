@@ -330,16 +330,7 @@ namespace Parkinson.Detection
                 }
             }
         }
-
-
-        private void kinectReader_Loaded(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        
-
-        private void kinectReader_Closing(object sender, RoutedEventArgs e)
+private void kinectReader_Closing(object sender, RoutedEventArgs e)
         {
 
 

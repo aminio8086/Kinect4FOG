@@ -126,7 +126,7 @@
       <DependentUpon>FallAlertWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Hardware\SerialController.cs" />
-    <Compile Include="Networking\Networking\UdpBroadcastSettingsWindow.xaml.cs">
+    <Compile Include="Networking\UdpBroadcastSettingsWindow.xaml.cs">
       <DependentUpon>Networking\UdpBroadcastSettingsWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="UI\FallAlertWindow.xaml">
