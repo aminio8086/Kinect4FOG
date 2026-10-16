@@ -8,7 +8,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media.Media3D;
-using Excel = Microsoft.Office.Interop.Excel;
 using Microsoft.Kinect;
 using System.Threading;
 using System.Net.Sockets;
@@ -28,11 +27,7 @@ namespace Parkinson.Detection
         double _rightProjectionAngleDegrees = 0;
 
         private readonly SerialController _serialController;
-
-        private Thread _threadExcel;
-        private ThreadStart _startThreadExcel;
-
-        //For head height calculator
+//For head height calculator
         double distanceHeadCurrent = 0;
         double distanceHeadCurrentAbs = 0;
         //For real-time head height plot
@@ -63,16 +58,7 @@ namespace Parkinson.Detection
         private int _textRowNumber;
         private bool _recordTextData;
         private StreamWriter _recordingWriter;
-
-
-        //For excel data recording
-        private Excel.Application _excelInstance = new Excel.Application();
-        private Excel.Workbook _excelworkbook;
-        private Excel.Worksheet _excelWorksheet;
-        private int _excelCol = 1;
-        private int _excelRowNum = 1;
-
-        //FOG Determination
+//FOG Determination
         public Joint rightFootJoint;
         public Joint leftFootJoint;
 
@@ -307,35 +293,22 @@ namespace Parkinson.Detection
         //#############################################################################################################################//
 
         //Create Excel sheet with the given information
-        private void OpenExcel_Click(object sender, RoutedEventArgs e)
+        private void RecordDataButton_Click(object sender, RoutedEventArgs e)
         {
 
             switch (_recordTextData)
             {
                 case true:
                     _recordTextData = false;
-                    OpenExcel.Content = "Rec";
+                    RecordDataButton.Content = "Rec";
                     break;
                 case false:
                     _recordTextData = true;
-                    OpenExcel.Content = "Pause";
+                    RecordDataButton.Content = "Pause";
                     break;
 
             }
-
-            /*
-            _excelworkbook = _excelInstance.Workbooks.Add(Excel.XlSheetType.xlWorksheet);
-            _excelWorksheet = (Excel.Worksheet)_excelInstance.ActiveSheet;
-            _excelInstance.Visible = true;
-            _excelWorksheet.Cells[1, 1] = "Frame Number";
-            _excelWorksheet.Cells[1, 2] = "distanceLeft";
-            _excelWorksheet.Cells[1, 3] = "distanceRight";
-            _excelWorksheet.Cells[1, 4] = "Left Stride";
-            _excelWorksheet.Cells[1, 5] = "Right Stride";
-            */
-
-
-        }
+}
 
         //#############################################################################################################################//
 
@@ -365,22 +338,8 @@ namespace Parkinson.Detection
 
 
             TB_udp.Text = distanceHeadCurrentAbs.ToString();
-            //#############################################################################################################################//  
-
-            //Write data to an Excel sheet
-            if (_checkBoxExcel.IsChecked == true)
-            {
-
-                _startThreadExcel = new ThreadStart(excelwriter);
-                _threadExcel = new Thread(_startThreadExcel) { IsBackground = true };
-                _threadExcel.Start();
-                _checkBoxExcel.IsChecked = false;
-
-            }
-
-
-
-        }
+            //#############################################################################################################################//
+}
 
 
 
@@ -464,49 +423,6 @@ namespace Parkinson.Detection
 
 
 
-        private void excelwriter()
-        {
-            
-
-         
-            while (true)
-            {
-                _excelWorksheet.Cells[_excelCol, 1] = _excelRowNum;
-                //_excelWorksheet.Cells[_excelCol, 2] = _leftFootStrideDuration.ToString();
-                //_excelWorksheet.Cells[_excelCol, 3] = _rightFootStrideDuration.ToString();
-                
-                _excelWorksheet.Cells[_excelCol, 2] = "*";
-                _excelWorksheet.Cells[_excelCol, 3] = _angleKneeRight.ToString();
-                _excelWorksheet.Cells[_excelCol, 4] = _angleKneeLeft.ToString();
-                _excelWorksheet.Cells[_excelCol, 5] = "*";
-                _excelWorksheet.Cells[_excelCol, 6] = rightFootJoint.Position.X.ToString();
-                _excelWorksheet.Cells[_excelCol, 7] = rightFootJoint.Position.Y.ToString();
-                _excelWorksheet.Cells[_excelCol, 8] = rightFootJoint.Position.Z.ToString();
-                _excelWorksheet.Cells[_excelCol, 9] = "*";
-                _excelWorksheet.Cells[_excelCol, 10] = leftFootJoint.Position.X.ToString();
-                _excelWorksheet.Cells[_excelCol, 11] = leftFootJoint.Position.Y.ToString();
-                _excelWorksheet.Cells[_excelCol, 12] = leftFootJoint.Position.Z.ToString();
-                _excelWorksheet.Cells[_excelCol, 13] = "*";
-                _excelWorksheet.Cells[_excelCol, 14] = _rightProjectionAngleDegrees.ToString();
-                _excelWorksheet.Cells[_excelCol, 15] = _leftProjectionAngleDegrees.ToString();
-                _excelWorksheet.Cells[_excelCol, 16] = "*";
-                _excelWorksheet.Cells[_excelCol, 17] = (Math.Abs(90 + _resultShoulderTurnRight)).ToString();
-                _excelWorksheet.Cells[_excelCol, 18] = (Math.Abs(90 - _resultShoulderTurnLeft)).ToString();
-
-
-                _excelCol++;
-                _excelRowNum++;
-                Thread.Sleep(1);
-                        
-            }
-   
-
-        }
-        //#############################################################################################################################//
-        /// <summary>
-        /// Determines the upper body orientation in degrees (facing camera = 0)
-        /// for the use of the horizontal motor
-        /// </summary>
         public void UpdateBodyOrientation()
         {
           //  test = true;

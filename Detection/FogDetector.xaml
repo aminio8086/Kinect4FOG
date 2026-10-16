@@ -40,8 +40,7 @@
         <TextBox x:Name="TB_temp2" HorizontalAlignment="Left" Height="27" Margin="478,229,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="20"/>
         <TextBox x:Name="TB_sensorHeight" HorizontalAlignment="Left" Height="23" Margin="10,96,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <Label Content="Sensor Height" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.342,-0.48" FontWeight="Bold"/>
-        <Button x:Name="OpenExcel" Content="Export Data" HorizontalAlignment="Left" Margin="333,81,0,0" VerticalAlignment="Top" Width="75" Click="OpenExcel_Click"/>
-        <CheckBox x:Name="_checkBoxExcel" Content="Enable" HorizontalAlignment="Left" Margin="333,53,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="RecordDataButton" Content="Record Data" HorizontalAlignment="Left" Margin="333,81,0,0" VerticalAlignment="Top" Width="75" Click="RecordDataButton_Click"/>
         <TextBox x:Name="TB_rightNumStep" HorizontalAlignment="Left" Height="33" Margin="271,484,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="20"/>
         <Label Content="Number of steps" HorizontalAlignment="Left" Margin="271,458,0,0" VerticalAlignment="Top" Height="28" Width="120"/>
         <Rectangle x:Name="box" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="74" Margin="506,326,0,0" Stroke="Black" VerticalAlignment="Top" Width="92" Visibility="Hidden"/>
