@@ -58,7 +58,9 @@ This is Windows research software requiring Microsoft Kinect v2 support and the 
 
 Research implementation and modifications:
 
-**Copyright (c) Amin Amini. All rights reserved.**
+**Copyright (c) Amin Amini.**
+
+The Kinect4FOG research implementation in this repository is licensed under the Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 Associated publication:
 

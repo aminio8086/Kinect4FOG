@@ -1,0 +1,13 @@
+Kinect4FOG
+Copyright (c) Amin Amini
+
+Licensed under the Apache License, Version 2.0.
+
+Associated publication:
+Kinect4FOG: monitoring and improving mobility in people with Parkinson's using a novel system incorporating the Microsoft Kinect v2
+
+Published paper:
+https://doi.org/10.1080/17483107.2018.1467975
+
+Parts of this software were developed using Microsoft Kinect SDK samples and APIs.
+Original Microsoft and other third-party notices remain applicable where present in source files.
