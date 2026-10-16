@@ -426,8 +426,8 @@ namespace Parkinson.Detection
                 stopwatchLeft.Start();
 
             }
-              else{
-
+            else
+            {
                     stopwatchLeft.Stop();
 
                     _leftFootStrideDuration = stopwatchLeft.Elapsed.Milliseconds;
