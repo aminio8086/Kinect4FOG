@@ -488,8 +488,8 @@ private void CloseSensorResources(object sender, RoutedEventArgs e)
                                     _mainWindow.fogDetector.ankleRightJoint = (joints[JointType.AnkleRight]);
 
                                     // Joints used for body-orientation detection
-                                    _mainWindow.fogDetector.shoulderRightJoint = (joints[JointType.HipRight]);
-                                    _mainWindow.fogDetector.shoulderLeftJoint = (joints[JointType.HipLeft]);
+                                    _mainWindow.fogDetector.shoulderRightJoint = (joints[JointType.ShoulderRight]);
+                                    _mainWindow.fogDetector.shoulderLeftJoint = (joints[JointType.ShoulderLeft]);
                                 }
 
                                 //3D space point

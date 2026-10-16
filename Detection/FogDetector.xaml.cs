@@ -157,29 +157,29 @@ namespace Parkinson.Detection
         //#############################################################################################################################//
 
         public FogDetector()
+            : this(new SerialController())
         {
+        }
 
+        public FogDetector(SerialController serialController)
+        {
+            if (serialController == null)
+            {
+                throw new ArgumentNullException(nameof(serialController));
+            }
+
+            _serialController = serialController;
             InitializeComponent();
             _labelHeadHeight = new Label[12];
 
-            //To remove bug at the beginning of plot drawing
-            _oldHeadHeight = headJoint.Position.Y * 100;
-
-            //For receiving udp
             _udpReceiveThreadStart = new ThreadStart(ReceiveUdpCommands);
             _udpReceiveThread = new Thread(_udpReceiveThreadStart) { IsBackground = true };
             _udpReceiveThread.Start();
 
-
-
-
             HorizontalMotorRotation.Interval = TimeSpan.FromMilliseconds(150);
             HorizontalMotorRotation.Tick += new EventHandler(HorizontalMotorRotation_Tick);
-
             HorizontalMotorRotation.Start();
 
-
-            //Timer for fall detection
             FOGChecker.Interval = TimeSpan.FromMilliseconds(2000);
             FOGChecker.Tick += new EventHandler(FOGChecker_Tick);
             FOGChecker.Start();
@@ -187,16 +187,12 @@ namespace Parkinson.Detection
             FOGHappened.Interval = TimeSpan.FromMilliseconds(1800);
             FOGHappened.Tick += new EventHandler(FOGHappened_Tick);
 
-
             resetFOGIndicator.Interval = TimeSpan.FromSeconds(2);
             resetFOGIndicator.Tick += new EventHandler(resetFOGIndicator_Tick);
 
             grapherTimer.Interval = TimeSpan.FromSeconds(1);
             grapherTimer.Tick += new EventHandler(grapherTimer_Tick);
             grapherTimer.Start();
-
-
-
         }
 
 
@@ -693,7 +689,7 @@ namespace Parkinson.Detection
         {
             if (_lableFOG.Visibility == System.Windows.Visibility.Visible)
             {
-                _lableFOG.Visibility = System.Windows.Visibility.Visible;
+                _lableFOG.Visibility = System.Windows.Visibility.Hidden;
                 resetFOGIndicator.Stop();
                
             }
