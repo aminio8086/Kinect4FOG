@@ -14,7 +14,6 @@ using Microsoft.Kinect;
 using System.Windows.Controls;
 using System.Net.Sockets;
 using System.Net;
-using System.Threading;
 using System.Text;
 using System.IO;
 
@@ -37,7 +36,7 @@ namespace Parkinson.Detection
         /// <summary>
         /// Bitmap to display
         /// </summary>
-        private WriteableBitmap colorBitmap = null;
+        private WriteableBitmap _colorBitmap = null;
        
         /// <summary>
         /// Radius of drawn hand circles
@@ -85,7 +84,7 @@ namespace Parkinson.Detection
         private readonly Brush inferredJointBrush = Brushes.Yellow;
 
         /// <summary>
-        /// Pen used for drawing bones that are currently inferred
+        /// Pen used for drawing _bones that are currently inferred
         /// </summary>        
         private readonly Pen inferredBonePen = new Pen(Brushes.Gray, 1);
 
@@ -107,7 +106,7 @@ namespace Parkinson.Detection
         /// <summary>
         /// Coordinate mapper to map one type of point to another
         /// </summary>
-        private CoordinateMapper coordinateMapper = null;
+        private CoordinateMapper _coordinateMapper = null;
 
         /// <summary>
         /// Reader for body frames
@@ -115,24 +114,24 @@ namespace Parkinson.Detection
         public BodyFrameReader bodyFrameReader = null;
 
         /// <summary>
-        /// Array for the bodies
+        /// Array for the _bodies
         /// </summary>
-        private Body[] bodies = null;
+        private Body[] _bodies = null;
 
         /// <summary>
-        /// definition of bones
+        /// definition of _bones
         /// </summary>
-        private List<Tuple<JointType, JointType>> bones;
+        private List<Tuple<JointType, JointType>> _bones;
 
         /// <summary>
         /// Width of display (depth space)
         /// </summary>
-        private int displayWidth;
+        private int _displayWidth;
 
         /// <summary>
         /// Height of display (depth space)
         /// </summary>
-        private int displayHeight;
+        private int _displayHeight;
 
         /// <summary>
         /// List of colors for each body tracked
@@ -140,7 +139,7 @@ namespace Parkinson.Detection
         /// <summary>
         /// Current status text to display
         /// </summary>
-        private string statusText = null;
+        private string _statusText = null;
         /// <summary>
         /// INotifyPropertyChangedPropertyChanged event to allow window controls to bind to changeable data
         /// </summary>
@@ -150,30 +149,9 @@ namespace Parkinson.Detection
 
         //Image to be sent to a UDP server
         private byte[] _bitmapData;
-        
-        //Thread for SendImage() function
-        public Thread testThread;
-        private ThreadStart testThreadStart;
-
-        //UDP socket for SendImage()
-        public IPAddress broadcast;
-        public IPEndPoint ep;
-
-        //Downsizing RGB feed for UDP
-        private TransformedBitmap tbBitmap;
-
-
-
-
-        //Data to be sent for SendInfo()
-        private byte[] _infoData= new byte [1000];
-
-        //Thread for SendInfo() function
-        public Thread testThread2;
-        private ThreadStart testThreadStart2;
-
-
-        public void SendImage()
+//Downsizing RGB feed for UDP
+        private TransformedBitmap _broadcastBitmap;
+private void SendImage()
         {
 
                 if (_mainWindow.broadcaster == true)
@@ -199,7 +177,7 @@ namespace Parkinson.Detection
       
 
 
-        private void SendInfo()
+        private void SendMonitoringInfo()
         {
 
             if (_mainWindow.fogDetectorBool == true)
@@ -224,17 +202,7 @@ namespace Parkinson.Detection
 
         public void Start()
         {
-
-          testThreadStart = new ThreadStart(SendImage);
-          testThread = new Thread(testThreadStart) { IsBackground = true };
-          testThread.Start();
-
-            testThreadStart2 = new ThreadStart(SendInfo);
-            testThread2 = new Thread(testThreadStart2) { IsBackground = true };
-            testThread2.Start();
-
-
-            // one sensor is currently supported
+// one sensor is currently supported
             this.kinectSensor = KinectSensor.GetDefault();
 
             // open the reader for the color frames
@@ -247,24 +215,24 @@ namespace Parkinson.Detection
             FrameDescription colorFrameDescription = this.kinectSensor.ColorFrameSource.CreateFrameDescription(ColorImageFormat.Bgra);
 
             // create the bitmap to display
-            this.colorBitmap = new WriteableBitmap(colorFrameDescription.Width, colorFrameDescription.Height, 96.0, 96.0, PixelFormats.Bgr32, null);
+            this._colorBitmap = new WriteableBitmap(colorFrameDescription.Width, colorFrameDescription.Height, 96.0, 96.0, PixelFormats.Bgr32, null);
 
 
             // get the coordinate mapper
-            this.coordinateMapper = this.kinectSensor.CoordinateMapper;
+            this._coordinateMapper = this.kinectSensor.CoordinateMapper;
 
             // get the depth (display) extents
             FrameDescription frameDescription = this.kinectSensor.DepthFrameSource.FrameDescription;
 
             // get size of joint space
-            this.displayWidth = frameDescription.Width;
-            this.displayHeight = frameDescription.Height;
+            this._displayWidth = frameDescription.Width;
+            this._displayHeight = frameDescription.Height;
 
             // open the reader for the body frames
             this.bodyFrameReader = this.kinectSensor.BodyFrameSource.OpenReader();
 
             // a bone defined as a line between two joints
-            this.bones = new List<Tuple<JointType, JointType>>();
+            this._bones = new List<Tuple<JointType, JointType>>();
 
 
             // set IsAvailableChanged event notifier
@@ -298,14 +266,14 @@ namespace Parkinson.Detection
         {
             get
             {
-                return statusText;
+                return _statusText;
             }
 
             set
             {
-                if (statusText != value)
+                if (_statusText != value)
                 {
-                    statusText = value;
+                    _statusText = value;
 
                     // notify any bound elements that the text has changed
                     if (PropertyChanged != null)
@@ -352,37 +320,37 @@ private void CloseSensorResources(object sender, RoutedEventArgs e)
 
                     using (KinectBuffer colorBuffer = colorFrame.LockRawImageBuffer())
                     {
-                        colorBitmap.Lock();
+                        _colorBitmap.Lock();
 
                         // verify data and write the new color frame data to the display bitmap
-                        if ((colorFrameDescription.Width == this.colorBitmap.PixelWidth) && (colorFrameDescription.Height == this.colorBitmap.PixelHeight))
+                        if ((colorFrameDescription.Width == this._colorBitmap.PixelWidth) && (colorFrameDescription.Height == this._colorBitmap.PixelHeight))
                         {
                             colorFrame.CopyConvertedFrameDataToIntPtr(
-                                colorBitmap.BackBuffer,
+                                _colorBitmap.BackBuffer,
                                 (uint)(colorFrameDescription.Width * colorFrameDescription.Height * 4),
                                 ColorImageFormat.Bgra);
 
-                            colorBitmap.AddDirtyRect(new Int32Rect(0, 0, colorBitmap.PixelWidth, colorBitmap.PixelHeight));
+                            _colorBitmap.AddDirtyRect(new Int32Rect(0, 0, _colorBitmap.PixelWidth, _colorBitmap.PixelHeight));
                         }
 
-                        colorBitmap.Unlock();
+                        _colorBitmap.Unlock();
 
 
 
                         // Transforming bitmap to lower resolution.
-                        ScaleTransform scale = new ScaleTransform((160.0 / colorBitmap.PixelWidth), (90.0 / colorBitmap.PixelHeight));
-                        this.tbBitmap = new TransformedBitmap(colorBitmap, scale);
+                        ScaleTransform scale = new ScaleTransform((160.0 / _colorBitmap.PixelWidth), (90.0 / _colorBitmap.PixelHeight));
+                        this._broadcastBitmap = new TransformedBitmap(_colorBitmap, scale);
 
 
-                        var width = tbBitmap.PixelWidth;
-                        var height = tbBitmap.PixelHeight;
-                        var stride = width * ((tbBitmap.Format.BitsPerPixel + 7) / 8);
+                        var width = _broadcastBitmap.PixelWidth;
+                        var height = _broadcastBitmap.PixelHeight;
+                        var stride = width * ((_broadcastBitmap.Format.BitsPerPixel + 7) / 8);
 
                         _bitmapData = new byte[height * stride];
 
                         var stream = new MemoryStream();
                         var encoder = new JpegBitmapEncoder();
-                        encoder.Frames.Add(BitmapFrame.Create(tbBitmap));
+                        encoder.Frames.Add(BitmapFrame.Create(_broadcastBitmap));
                         encoder.Save(stream);
                         _bitmapData = stream.GetBuffer();
 
@@ -407,16 +375,16 @@ private void CloseSensorResources(object sender, RoutedEventArgs e)
 
                     if (bodyFrame != null)
                     {
-                        if (this.bodies == null)
+                        if (this._bodies == null)
                         {
-                            this.bodies = new Body[bodyFrame.BodyCount];
+                            this._bodies = new Body[bodyFrame.BodyCount];
                         }
 
 
                         // The first time GetAndRefreshBodyData is called, Kinect will allocate each Body in the array.
                         // As long as those body objects are not disposed and not set to null in the array,
                         // those body objects will be re-used.
-                        bodyFrame.GetAndRefreshBodyData(bodies);
+                        bodyFrame.GetAndRefreshBodyData(_bodies);
                         dataReceived = true;
 
                         if (_mainWindow.fogDetector != null && _mainWindow.fogDetector.Visibility == Visibility.Visible)
@@ -442,20 +410,20 @@ private void CloseSensorResources(object sender, RoutedEventArgs e)
 
                         BitmapEncoder encoder = new PngBitmapEncoder();
                         // create frame from the writable bitmap and add to encoder
-                        encoder.Frames.Add(BitmapFrame.Create(this.colorBitmap));
+                        encoder.Frames.Add(BitmapFrame.Create(this._colorBitmap));
 
                         ImageBrush ib = new ImageBrush();
 
 
 
-                        ib.ImageSource = this.colorBitmap;
+                        ib.ImageSource = this._colorBitmap;
                         // Draw a transparent background to set the render size
-                        dc.DrawRectangle(ib, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                        dc.DrawRectangle(ib, null, new Rect(0.0, 0.0, this._displayWidth, this._displayHeight));
                     }
                     _mainWindow.canvas.Children.Clear();
 
 
-                    foreach (Body body in this.bodies)
+                    foreach (Body body in this._bodies)
                     {
 
                         if (body.IsTracked)
@@ -536,7 +504,7 @@ private void CloseSensorResources(object sender, RoutedEventArgs e)
 
 
                                 SendImage();
-                                 SendInfo();
+                                 SendMonitoringInfo();
 
 
 

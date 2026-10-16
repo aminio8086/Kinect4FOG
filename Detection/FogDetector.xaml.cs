@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using Parkinson.Detection.Detectors;
 using System.IO;
-
 namespace Parkinson.Detection
 {
     /// <summary>
@@ -58,14 +57,14 @@ namespace Parkinson.Detection
 
         //To create a text file for data collection
         string folderName = @"d:\kinect_data_recording";
-        private int _txtRowNum = 0;
-        private bool _rectxtdata = false;
+        private int _textRowNumber = 0;
+        private bool _recordTextData = false;
 
-        string path = @"d:\kinect_data_recording\" + DateTime.Now.ToString("(yyyy") + DateTime.Now.ToString("-MM")
+        string _recordingFilePath = @"d:\kinect_data_recording\" + DateTime.Now.ToString("(yyyy") + DateTime.Now.ToString("-MM")
             + DateTime.Now.ToString("-dd)") + DateTime.Now.ToString("_HH")
             + DateTime.Now.ToString("_mm")
             + DateTime.Now.ToString("_ss") + ".txt";
-        StreamWriter sw;
+        StreamWriter _recordingWriter;
 
 
         //For excel data recording
@@ -170,6 +169,10 @@ namespace Parkinson.Detection
 
             _serialController = serialController;
             InitializeComponent();
+            Directory.CreateDirectory(_recordingDirectory);
+            _recordingFilePath = Path.Combine(
+                _recordingDirectory,
+                DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".txt");
             _labelHeadHeight = new Label[12];
 
             _udpReceiveThreadStart = new ThreadStart(ReceiveUdpCommands);
@@ -309,14 +312,14 @@ namespace Parkinson.Detection
         private void OpenExcel_Click(object sender, RoutedEventArgs e)
         {
 
-            switch (_rectxtdata)
+            switch (_recordTextData)
             {
                 case true:
-                    _rectxtdata = false;
+                    _recordTextData = false;
                     OpenExcel.Content = "Rec";
                     break;
                 case false:
-                    _rectxtdata = true;
+                    _recordTextData = true;
                     OpenExcel.Content = "Pause";
                     break;
 
@@ -389,20 +392,20 @@ namespace Parkinson.Detection
         {
 
 
-            if (_rectxtdata == true)
+            if (_recordTextData == true)
             {
 
-                if (!File.Exists(path))
+                if (!File.Exists(_recordingFilePath))
                 {
                     // Create a file to write to.
-                    sw = new StreamWriter(path);
+                    _recordingWriter = new StreamWriter(_recordingFilePath);
 
                 }
-                //  sw = File.CreateText(path);
+                //  _recordingWriter = File.CreateText(_recordingFilePath);
 
-                if (_txtRowNum == 0)
+                if (_textRowNumber == 0)
                 {
-                    sw.WriteLine(_txtRowNum + " "
+                    _recordingWriter.WriteLine(_textRowNumber + " "
                     + "Head" + " "
                     + "Neck" + " "
                     + "Spine_Shoulder" + " "
@@ -422,12 +425,12 @@ namespace Parkinson.Detection
                    // + originalJointDistance[0].ToString() + " "
 
                    + "Distance_to_Cam");
-                    _txtRowNum++;
+                    _textRowNumber++;
                 }
 
                 else
                 {
-                    sw.WriteLine(_txtRowNum + " "
+                    _recordingWriter.WriteLine(_textRowNumber + " "
 
                     + _angleKneeRight.ToString() + " "
                     + _angleKneeLeft.ToString()  + " "
@@ -450,7 +453,7 @@ namespace Parkinson.Detection
 
 
            );
-                    _txtRowNum++;
+                    _textRowNumber++;
                 }
 
             }
