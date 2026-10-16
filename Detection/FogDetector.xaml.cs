@@ -55,16 +55,14 @@ namespace Parkinson.Detection
 
 
 
-        //To create a text file for data collection
-        string folderName = @"d:\kinect_data_recording";
-        private int _textRowNumber = 0;
-        private bool _recordTextData = false;
-
-        string _recordingFilePath = @"d:\kinect_data_recording\" + DateTime.Now.ToString("(yyyy") + DateTime.Now.ToString("-MM")
-            + DateTime.Now.ToString("-dd)") + DateTime.Now.ToString("_HH")
-            + DateTime.Now.ToString("_mm")
-            + DateTime.Now.ToString("_ss") + ".txt";
-        StreamWriter _recordingWriter;
+        // Research data is written to a per-user Documents folder.
+        private readonly string _recordingDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            "Kinect4FOGData");
+        private string _recordingFilePath;
+        private int _textRowNumber;
+        private bool _recordTextData;
+        private StreamWriter _recordingWriter;
 
 
         //For excel data recording

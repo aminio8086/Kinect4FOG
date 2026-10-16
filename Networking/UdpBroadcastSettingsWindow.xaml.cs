@@ -3,20 +3,20 @@
 // Author: Amin Amini
 // Associated publication: https://doi.org/10.1080/17483107.2018.1467975
 //
-using System;
-using System;
 using System.Net;
 using System.Windows;
+
 namespace Parkinson.Detection
 {
     /// <summary>
-    /// Interaction logic for UdpBroadcastSettingsWindow.xaml
+    /// Configures the UDP endpoint used for remote monitoring broadcasts.
     /// </summary>
     public partial class UdpBroadcastSettingsWindow : Window
     {
-        public bool IsConfigured = false;
-       public IPAddress broadcast;
-         public    IPEndPoint ep;
+        public bool IsConfigured { get; private set; }
+
+        public IPEndPoint EndPoint { get; private set; }
+
         public UdpBroadcastSettingsWindow()
         {
             InitializeComponent();
@@ -24,17 +24,33 @@ namespace Parkinson.Detection
 
         private void B_save_Click(object sender, RoutedEventArgs e)
         {
-            int anInteger;
-            anInteger = Convert.ToInt32(text_Port.Text);
-            anInteger = int.Parse(text_Port.Text);
+            IPAddress address;
+            int port;
 
-             broadcast = IPAddress.Parse(text_IP.Text);
+            if (!IPAddress.TryParse(text_IP.Text, out address))
+            {
+                MessageBox.Show(
+                    "Enter a valid IP address.",
+                    "Invalid address",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
 
-            ep = new IPEndPoint(broadcast, anInteger);
+            if (!int.TryParse(text_Port.Text, out port) ||
+                port < IPEndPoint.MinPort ||
+                port > IPEndPoint.MaxPort)
+            {
+                MessageBox.Show(
+                    "Enter a valid UDP port number (0-65535).",
+                    "Invalid port",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
+            EndPoint = new IPEndPoint(address, port);
             IsConfigured = true;
-
-
-
         }
     }
 }
