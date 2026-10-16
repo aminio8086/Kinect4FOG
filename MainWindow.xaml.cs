@@ -55,19 +55,18 @@ namespace Parkinson.Detection
         /// Initializes a new instance of the MainWindow class.
         /// </summary>
         public MainWindow()
-       {
+        {
+            InitializeComponent();
 
-
-           // initialize the components (controls) of the window
-           this.InitializeComponent();
-
-       }
+            _serialController = new SerialController();
+            _serialPortSettingsWindow = new SerialPortSettingsWindow(_serialController);
+        }
 
         /// <summary>
-        /// Execute start up tasks
+        /// Execute start up tasks.
         /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
+        /// <param name="sender">Object sending the event.</param>
+        /// <param name="e">Event arguments.</param>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
 
