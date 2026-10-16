@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+title: "Kinect4FOG"
+message: "If you use this software, please cite the associated publication."
+type: software
+authors:
+  - family-names: Amini
+    given-names: Amin
+repository-code: "https://github.com/aminio8086/Kinect4FOG-Release"
+preferred-citation:
+  type: article
+  title: "Kinect4FOG: monitoring and improving mobility in people with Parkinson's using a novel system incorporating the Microsoft Kinect v2"
+  doi: "10.1080/17483107.2018.1467975"
+  url: "https://doi.org/10.1080/17483107.2018.1467975"
