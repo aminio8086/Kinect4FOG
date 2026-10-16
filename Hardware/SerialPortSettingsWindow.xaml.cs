@@ -15,7 +15,7 @@ namespace Parkinson.Detection
     public partial class SerialPortSettingsWindow : Window
     {
 
-        private readonly SerialController _serialController = new SerialController();
+        private readonly SerialController _serialController;
 
       
 

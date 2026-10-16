@@ -14,7 +14,6 @@ namespace Parkinson.Detection
 
     #region Namespace
     using System.ComponentModel;
-    using System.Threading;
     using System.Windows;
 
 
@@ -42,7 +41,8 @@ namespace Parkinson.Detection
         public FogDetector fogDetector;
         public UdpBroadcastSettingsWindow udpBroadcast;
 
-        private readonly SerialPortSettingsWindow _serialPortSettingsWindow = new SerialPortSettingsWindow();
+        private readonly SerialController _serialController;
+        private readonly SerialPortSettingsWindow _serialPortSettingsWindow;
 
 
         #region KinectStuff
@@ -86,7 +86,7 @@ namespace Parkinson.Detection
 
             if (_kinectReader.colorFrameReader != null)
             {
-                // ColorFrameReder is IDisposable
+                // ColorFrameReader is IDisposable
                 _kinectReader.colorFrameReader.Dispose();
                 _kinectReader.colorFrameReader = null;
             }
@@ -117,7 +117,7 @@ namespace Parkinson.Detection
 
         private void Menu_DataWindow_Click(object sender, RoutedEventArgs e)
         {
-            fogDetector = new FogDetector();
+            fogDetector = new FogDetector(_serialController);
             fogDetector.Show();
             fogDetectorBool = true;
     }

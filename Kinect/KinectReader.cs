@@ -173,11 +173,6 @@ namespace Parkinson.Detection
         private ThreadStart testThreadStart2;
 
 
-        public KinectReader()
-        {
-        }
-
-
         public void SendImage()
         {
 
@@ -486,10 +481,10 @@ private void CloseSensorResources(object sender, RoutedEventArgs e)
                                     _mainWindow.fogDetector.spineMidJoint = (joints[JointType.SpineMid]);
                                     _mainWindow.fogDetector.spineBaseJoint = (joints[JointType.SpineBase]);
                                     _mainWindow.fogDetector.kneeLeftJoint = (joints[JointType.KneeLeft]);
-                                    _mainWindow.fogDetector.hipLeftJoint = (joints[JointType.HipLeft]);
+                                    _mainWindow.fogDetector.hipLeftJoint = (joints[JointType.ShoulderLeft]);
                                     _mainWindow.fogDetector.ankleLeftJoint = (joints[JointType.AnkleLeft]);
                                     _mainWindow.fogDetector.kneeRightJoint = (joints[JointType.KneeRight]);
-                                    _mainWindow.fogDetector.hipRightJoint = (joints[JointType.HipRight]);
+                                    _mainWindow.fogDetector.hipRightJoint = (joints[JointType.ShoulderRight]);
                                     _mainWindow.fogDetector.ankleRightJoint = (joints[JointType.AnkleRight]);
 
                                     // Joints used for body-orientation detection
@@ -527,11 +522,11 @@ private void CloseSensorResources(object sender, RoutedEventArgs e)
                             }
                             if (_mainWindow.fogDetector != null && _mainWindow.fogDetector.Visibility == Visibility.Visible)
                             {
-                                _mainWindow.fogDetector.headHeightCalculator();
+                                _mainWindow.fogDetector.UpdateHeadHeightAndFallState();
                                 _mainWindow.fogDetector.UpdateVerticalLaserPosition();
                                 _mainWindow.fogDetector.DetectFreezingOfGait();
-                                _mainWindow.fogDetector.BodyRotate();
-                                _mainWindow.fogDetector.CSVwriter();
+                                _mainWindow.fogDetector.UpdateBodyOrientation();
+                                _mainWindow.fogDetector.WriteDataSample();
                                 _mainWindow.fogDetector.UpdateGaitInformation();
 
 
@@ -561,18 +556,5 @@ private void CloseSensorResources(object sender, RoutedEventArgs e)
 
 
         }
-
-
-
-        public float coordinate(float joint)
-        {
-
-
-
-            return joint;
-        }
-
-
-
-    }
+}
 }
