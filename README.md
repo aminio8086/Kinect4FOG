@@ -23,7 +23,7 @@ The release contains the three deployable parts of the Kinect4FOG system:
 ### Repository structure
 
 ```text
-Kinect4FOG-Release/
+Kinect4FOG/
 ├── Detection/                  # FOG/fall analysis and research UI
 ├── Hardware/                   # Main-app serial controller/configuration
 ├── Images/                     # Main-app runtime resources
