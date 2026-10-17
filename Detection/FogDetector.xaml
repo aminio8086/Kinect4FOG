@@ -1,0 +1,89 @@
+﻿<Window x:Class="Parkinson.Detection.FogDetector"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+
+        mc:Ignorable="d"
+        Title="DataWindow" Height="581.955" Width="1087.789" Closing="FogDetector_Closing">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="MediumGreyBrush" Color="#ff6e6e6e" />
+    </Window.Resources>
+    <Grid x:Name="grid" Margin="10,0,-6.8,0">
+
+        <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="181" Margin="684,349,0,0" VerticalAlignment="Top" Width="347"/>
+
+        <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="88" Margin="271,31,0,0" VerticalAlignment="Top" Width="155"/>
+
+        <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="392" Margin="0,138,0,0" VerticalAlignment="Top" Width="426"/>
+
+        <TextBox x:Name="TB_leftAngle" HorizontalAlignment="Left" Height="33" Margin="38,219,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontSize="20" FontWeight="Bold"/>
+        <TextBox x:Name="TB_leftStride" HorizontalAlignment="Left" Height="33" Margin="38,310,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="20"/>
+        <TextBox x:Name="TB_leftStepinTime" HorizontalAlignment="Left" Height="33" Margin="38,400,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="20"/>
+        <TextBox x:Name="TB_leftNumStep" HorizontalAlignment="Left" Height="33" Margin="38,484,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="20"/>
+        <TextBox x:Name="TB_rightAngle" HorizontalAlignment="Left" Height="33" Margin="271,219,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontSize="20" FontWeight="Bold"/>
+        <TextBox x:Name="TB_rightStride" HorizontalAlignment="Left" Height="33" Margin="271,310,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="20"/>
+        <TextBox x:Name="TB_rightStepinTime" HorizontalAlignment="Left" Height="33" Margin="271,398,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="20"/>
+        <Label Content="Left" HorizontalAlignment="Left" Margin="55,151,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.342,-0.48" FontWeight="Bold"/>
+        <Label Content="Right" HorizontalAlignment="Left" Margin="313,151,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+        <Label Content="Stride Length (ms)" HorizontalAlignment="Left" Margin="38,282,0,0" VerticalAlignment="Top" Height="28" Width="133"/>
+        <Label Content="Steps in Given Time" HorizontalAlignment="Left" Margin="38,373,0,0" VerticalAlignment="Top" Height="27" Width="148"/>
+        <Label Content="Number of steps" HorizontalAlignment="Left" Margin="38,458,0,0" VerticalAlignment="Top" Height="28" Width="120"/>
+        <Label Content="Distance to Ground" HorizontalAlignment="Left" Margin="38,191,0,0" VerticalAlignment="Top" Height="23" Width="150"/>
+        <Label Content="Stride Length (ms)" HorizontalAlignment="Left" Margin="270,279,0,0" VerticalAlignment="Top" Height="31" Width="138" RenderTransformOrigin="0.558,0.194"/>
+        <Label Content="Steps in Given Time" HorizontalAlignment="Left" Margin="270,370,0,0" VerticalAlignment="Top" Height="28" Width="153"/>
+        <Label Content="Distance to Ground" HorizontalAlignment="Left" Margin="270,191,0,0" VerticalAlignment="Top" Height="27" Width="137"/>
+        <TextBox x:Name="TB_temp1" HorizontalAlignment="Left" Height="26" Margin="478,151,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="20"/>
+        <TextBox x:Name="TB_temp2" HorizontalAlignment="Left" Height="27" Margin="478,229,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="20"/>
+        <TextBox x:Name="TB_sensorHeight" HorizontalAlignment="Left" Height="23" Margin="10,96,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Label Content="Sensor Height" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.342,-0.48" FontWeight="Bold"/>
+        <Button x:Name="RecordDataButton" Content="Record Data" HorizontalAlignment="Left" Margin="333,81,0,0" VerticalAlignment="Top" Width="75" Click="RecordDataButton_Click"/>
+        <TextBox x:Name="TB_rightNumStep" HorizontalAlignment="Left" Height="33" Margin="271,484,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="20"/>
+        <Label Content="Number of steps" HorizontalAlignment="Left" Margin="271,458,0,0" VerticalAlignment="Top" Height="28" Width="120"/>
+        <Rectangle x:Name="box" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="74" Margin="506,326,0,0" Stroke="Black" VerticalAlignment="Top" Width="92" Visibility="Hidden"/>
+        <TextBox x:Name="TB_laser" HorizontalAlignment="Left" Height="23" Margin="479,403,0,0" TextWrapping="Wrap" Text="Disabled" VerticalAlignment="Top" Width="120"/>
+        <CheckBox x:Name="SerialCheckbox" Content="Connect to Serial" HorizontalAlignment="Left" Margin="489,96,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="TB_udp" HorizontalAlignment="Left" Height="23" Margin="479,338,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <CheckBox x:Name="ExcelBoxChecker_Copy" Content="Enable" HorizontalAlignment="Left" Margin="98,73,0,0" VerticalAlignment="Top"/>
+        <Canvas x:Name="grapher" HorizontalAlignment="Left" Height="200" Margin="666,65,0,0" VerticalAlignment="Top" Width="365">
+            <Canvas.Background>
+                <DrawingBrush TileMode="Tile" Viewport="0,-0.5,28,20"
+                                     ViewportUnits="Absolute">
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <RectangleGeometry Rect="0,0,80,80"/>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Pen>
+                                <Pen Brush="Gray" Thickness="1"/>
+                            </GeometryDrawing.Pen>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </Canvas.Background>
+        </Canvas>
+        <Label x:Name="label" Content="80" HorizontalAlignment="Left" Margin="647,153,0,0" VerticalAlignment="Top" FontSize="8"/>
+        <Label x:Name="label_Copy" Content="60" HorizontalAlignment="Left" Margin="647,174,0,0" VerticalAlignment="Top" FontSize="8"/>
+        <Label x:Name="label_Copy1" Content="40" HorizontalAlignment="Left" Margin="647,193,0,0" VerticalAlignment="Top" FontSize="8"/>
+        <Label x:Name="label_Copy2" Content="20" HorizontalAlignment="Left" Margin="647,214,0,0" VerticalAlignment="Top" FontSize="8"/>
+        <Label x:Name="label_Copy3" Content="0" HorizontalAlignment="Left" Margin="651,235,0,0" VerticalAlignment="Top" FontSize="8"/>
+        <Label x:Name="label_Copy4" Content="100" HorizontalAlignment="Left" Margin="642,132,0,0" VerticalAlignment="Top" FontSize="8"/>
+        <Label x:Name="label_Copy5" Content="120" HorizontalAlignment="Left" Margin="643,115,0,0" VerticalAlignment="Top" FontSize="8"/>
+        <Label x:Name="label_Copy6" Content="140" HorizontalAlignment="Left" Margin="643,94,0,0" VerticalAlignment="Top" FontSize="8"/>
+        <Label x:Name="label_Copy7" Content="160" HorizontalAlignment="Left" Margin="642,73,0,0" VerticalAlignment="Top" FontSize="8"/>
+        <Label Content="Hip Rotation Left" HorizontalAlignment="Left" Margin="489,124,0,0" VerticalAlignment="Top" Height="27" Width="106"/>
+        <Label Content="Hip Rotation Right" HorizontalAlignment="Left" Margin="489,200,0,0" VerticalAlignment="Top" Height="27" Width="110"/>
+        <Label Content="Head Joint Height" HorizontalAlignment="Left" Margin="485,306,0,0" VerticalAlignment="Top" Height="27" Width="110"/>
+        <Label Content="Yaw Angle" HorizontalAlignment="Left" Margin="485,371,0,0" VerticalAlignment="Top" Height="27" Width="110"/>
+        <Image x:Name="_imageStanding" HorizontalAlignment="Left" Height="144" Margin="823,370,0,0" VerticalAlignment="Top" Width="68" Source="/ParkinsonDetectionSystem;component/Images/Standing.PNG"/>
+        <Image x:Name="_imageFalling" HorizontalAlignment="Left" Height="145" Margin="796,417,0,-19" VerticalAlignment="Top" Width="133" Source="/ParkinsonDetectionSystem;component/Images/Falling.PNG" Visibility="Hidden"/>
+        <Label Content="Falling Incident" HorizontalAlignment="Left" Margin="684,317,0,0" VerticalAlignment="Top" Height="27" Width="110"/>
+        <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="72" Margin="431,458,0,0" VerticalAlignment="Top" Width="235"/>
+        <Label x:Name="_lableFOG" Content="FOG has happened. Initiating visual Cue!" HorizontalAlignment="Left" Margin="431,484,0,0" VerticalAlignment="Top" Height="33" Width="234" FontWeight="Bold" Background="Red" Foreground="#FFF3FF00" Visibility="Hidden"/>
+        <Label Content="FOG Status" HorizontalAlignment="Left" Margin="431,431,0,0" VerticalAlignment="Top" Height="27" Width="110"/>
+        <CheckBox x:Name="FallCheckbox" Content="Fall Detector" HorizontalAlignment="Left" Margin="489,65,0,0" VerticalAlignment="Top"/>
+
+    </Grid>
+
+</Window>
