@@ -6,7 +6,7 @@ license: Apache-2.0
 authors:
   - family-names: Amini
     given-names: Amin
-repository-code: "https://github.com/aminio8086/Kinect4FOG-Release"
+repository-code: "https://github.com/aminio8086/Kinect4FOG"
 preferred-citation:
   type: article
   title: "Kinect4FOG: monitoring and improving mobility in people with Parkinson's using a novel system incorporating the Microsoft Kinect v2"
